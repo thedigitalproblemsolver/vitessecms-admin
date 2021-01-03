@@ -296,11 +296,10 @@ abstract class AbstractAdminController extends AbstractController
         $this->beforePostBinding($item);
 
         if ($form === null) :
-            /** @var AbstractForm $form */
-            $form = new $this->classForm($item);
+            $form = $this->getItemForm($form, $item);
         endif;
-
         $form->bind($this->request->getPost(), $item);
+
         if ($form->validate($this)) :
             $item = $this->parseFormElement($form, $item);
             $item = $this->parseSubmittedFiles($item);
@@ -348,21 +347,8 @@ abstract class AbstractAdminController extends AbstractController
 
         $this->eventsManager->fire($this->controllerName.':beforeEdit', $this, $item);
 
-        if ($form === null && $this->classForm !== null) :
-            /** @var AbstractForm $form */
-            $form = new $this->classForm($item);
-        endif;
-
+        $form = $this->getItemForm($form, $item);
         if ($form !== null) :
-            $form->setEntity($item);
-            if($this->repositories !== null && method_exists($form,'setRepositories')) :
-                $form->setRepositories($this->repositories);
-            endif;
-            if(method_exists($form,'buildForm')) :
-
-                $form->buildForm();
-            endif;
-
             $adminEditForm = $form->renderForm(
                 'admin/'.$this->router->getModuleName().'/'.$this->router->getControllerName().'/save/'.$itemId
             );
@@ -387,6 +373,26 @@ abstract class AbstractAdminController extends AbstractController
             ], $this->renderParams)
         ));
         $this->prepareView();
+    }
+
+    protected function getItemForm(?AbstractForm $form, AbstractCollection $item): ?AbstractForm
+    {
+        if ($form === null && $this->classForm !== null) :
+            /** @var AbstractForm $form */
+            $form = new $this->classForm($item);
+        endif;
+
+        if ($form !== null) :
+            $form->setEntity($item);
+            if($this->repositories !== null && method_exists($form,'setRepositories')) :
+                $form->setRepositories($this->repositories);
+            endif;
+            if(method_exists($form,'buildForm')) :
+                $form->buildForm();
+            endif;
+        endif;
+
+        return $form;
     }
 
     /**
