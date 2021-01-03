@@ -101,7 +101,7 @@ abstract class AbstractAdminController extends AbstractController
         $this->listSortable = false;
         $this->listNestable = false;
         $this->listTemplate = 'adminList';
-        $this->listTemplatePath = $this->config->get('rootDir').'src/core/resources/views/';
+        $this->listTemplatePath = $this->configuration->getVendorNameDir().'vitessecms/src/core/resources/views/';
         $this->controllerName = (new \ReflectionClass($this))->getShortName();
         $this->renderParams = [];
     }
