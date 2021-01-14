@@ -101,7 +101,7 @@ abstract class AbstractAdminController extends AbstractController
         $this->listSortable = false;
         $this->listNestable = false;
         $this->listTemplate = 'adminList';
-        $this->listTemplatePath = $this->config->get('rootDir').'src/core/resources/views/';
+        $this->listTemplatePath = $this->configuration->getVendorNameDir().'vitessecms/src/core/resources/views/';
         $this->controllerName = (new \ReflectionClass($this))->getShortName();
         $this->renderParams = [];
     }
@@ -306,7 +306,7 @@ abstract class AbstractAdminController extends AbstractController
 
             /** move all Model::beforeModelSave to listeners */
             $this->beforeModelSave($item);
-            $this->eventsManager->fire($this->class.':beforeModelSave', $item, $this);
+            $this->eventsManager->fire($this->controllerName.':beforeModelSave', $this, $item);
 
             $item->save();
 
@@ -358,9 +358,7 @@ abstract class AbstractAdminController extends AbstractController
             $this->router->getModuleName(),
             str_replace('admin', '', $this->router->getControllerName()).'Buttons',
             '/admin/edit/',
-            [
-                'editId' => $item->getId(),
-            ]
+            ['editId' => $item->getId()]
         );
 
         $this->view->setVar('content', $this->view->renderTemplate(
@@ -736,11 +734,6 @@ abstract class AbstractAdminController extends AbstractController
      */
     public function beforeModelSave(AbstractCollection $item): void
     {
-        $this->eventsManager->fire(
-            $this->controllerName.':beforeModelSave',
-            $this,
-            $item
-        );
     }
 
     /**
