@@ -50,7 +50,7 @@ class AdminMenu
         return $this->setting;
     }
 
-    public function addDropbown(string $name, AdminMenuNavBarChildren $children): AdminMenu
+    public function addDropdown(string $name, AdminMenuNavBarChildren $children): AdminMenu
     {
         if (!isset($this->navbarItems[$name])) :
             $this->navbarItems[$name] = (new AdminMenuNavBarItem(

@@ -32,7 +32,7 @@ class AdminMenuListener
                 endwhile;
             endif;
 
-            $adminMenu->addDropbown('DataDesign',$children);
+            $adminMenu->addDropdown('DataDesign',$children);
         endif;
     }
 }
