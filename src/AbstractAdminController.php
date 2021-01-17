@@ -104,7 +104,6 @@ abstract class AbstractAdminController extends AbstractController
         $this->listTemplatePath = $this->configuration->getVendorNameDir().'vitessecms/src/core/resources/views/';
         $this->controllerName = (new \ReflectionClass($this))->getShortName();
         $this->renderParams = [];
-        $this->repositories = null;
     }
 
     public function adminListAction(): void
@@ -383,7 +382,7 @@ abstract class AbstractAdminController extends AbstractController
 
         if ($form !== null) :
             $form->setEntity($item);
-            if($this->repositories !== null && method_exists($form,'setRepositories')) :
+            if(method_exists($form,'setRepositories')) :
                 $form->setRepositories($this->repositories);
             endif;
             if(method_exists($form,'buildForm')) :
