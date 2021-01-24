@@ -470,7 +470,7 @@ abstract class AbstractAdminController extends AbstractController
      */
     public function togglePublishAction(): void
     {
-        $logMessage = LanguageHelper::_('ADMIN_ITEM_PUBLISHED');
+        $logMessage = 'ADMIN_ITEM_PUBLISHED';
 
         /** @var AbstractCollection $item */
         $item = new $this->class();
@@ -482,11 +482,11 @@ abstract class AbstractAdminController extends AbstractController
 
         if ($item->_('published') === true) :
             $item->set('published', false);
-            $logMessage = LanguageHelper::_('ADMIN_ITEM_UNPUBLISHED');
-            $this->flash->_('ADMIN_ITEM_UNPUBLISHED');
+            $logMessage = 'ADMIN_ITEM_UNPUBLISHED';
+            $this->flash->setSucces('ADMIN_ITEM_UNPUBLISHED');
         else :
             $item->set('published', true);
-            $this->flash->_('ADMIN_ITEM_PUBLISHED');
+            $this->flash->setSucces('ADMIN_ITEM_PUBLISHED');
         endif;
 
         $item->beforePublish();
@@ -494,7 +494,7 @@ abstract class AbstractAdminController extends AbstractController
         $item->afterPublish();
         $this->afterPublish($item);
 
-        $this->log->write($item->getId(), $this->class, $logMessage);
+        $this->log->write($item->getId(), $this->class, $this->language->get($logMessage));
 
         $this->redirect();
     }
