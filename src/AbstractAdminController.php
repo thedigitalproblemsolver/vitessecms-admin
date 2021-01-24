@@ -393,9 +393,6 @@ abstract class AbstractAdminController extends AbstractController
         return $form;
     }
 
-    /**
-     * @throws \Phalcon\Mvc\Collection\Exception
-     */
     public function deleteAction(): void
     {
         /** @var AbstractCollection $item */
@@ -412,11 +409,11 @@ abstract class AbstractAdminController extends AbstractController
                 $this->log->write(
                     $item->getId(),
                     $this->class,
-                    LanguageHelper::_('ADMIN_ITEM_DELETED', [$item->_('name')])
+                    $this->language->get('ADMIN_ITEM_DELETED', [$item->_('name')])
                 );
             endif;
 
-            $this->flash->_('ADMIN_ITEM_DELETED', 'success', [$item->_('name')]);
+            $this->flash->setSucces('ADMIN_ITEM_DELETED', [$item->_('name')]);
 
             if ($item->hasParent()) :
                 $this->class::setFindValue('parentId', $item->getParentId());
@@ -428,15 +425,12 @@ abstract class AbstractAdminController extends AbstractController
                 endif;
             endif;
         else :
-            $this->flash->_('ADMIN_ITEM_NOT_FOUND', 'error');
+            $this->flash->setError('ADMIN_ITEM_NOT_FOUND');
         endif;
 
         $this->redirect($this->link.'/adminList');
     }
 
-    /**
-     * copyAction
-     */
     public function copyAction(): void
     {
         if ($this->dispatcher->getParam(0)) :
@@ -465,9 +459,6 @@ abstract class AbstractAdminController extends AbstractController
         $this->redirect($this->link.'/adminList');
     }
 
-    /**
-     * @throws \Phalcon\Mvc\Collection\Exception
-     */
     public function togglePublishAction(): void
     {
         $logMessage = 'ADMIN_ITEM_PUBLISHED';
