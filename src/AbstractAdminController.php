@@ -324,7 +324,7 @@ abstract class AbstractAdminController extends AbstractController
 
             $this->log->write($item->getId(), \get_class($item), 'Item saved');
 
-            $this->flash->_('ADMIN_ITEM_SAVED');
+            $this->flash->setSucces('ADMIN_ITEM_SAVED');
         endif;
 
         $this->redirect($this->link.'/edit/'.$item->getId(), [], false);
