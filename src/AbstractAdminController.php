@@ -150,7 +150,7 @@ abstract class AbstractAdminController extends AbstractController
         $items = $item::findAll();
 
         if (\count($items) === 0) :
-            $this->flash->_('ADMIN_NO_ITEMS_FOUND');
+            $this->flash->setError('ADMIN_NO_ITEMS_FOUND');
         endif;
 
         return PaginatonFactory::createFromArray(
@@ -501,16 +501,12 @@ abstract class AbstractAdminController extends AbstractController
         $this->unDeletable[] = $id;
     }
 
-    /**
-     * save ordering
-     * @throws \Phalcon\Mvc\Collection\Exception
-     */
     public function saveorderAction(): void
     {
         $ordering = (array)json_decode($this->request->get('ordering'));
         $this->recursiveSaveOrder($ordering[0], $this->class);
 
-        $this->flash->_('ADMIN_ORDERING_SAVED');
+        $this->flash->setSucces('ADMIN_ORDERING_SAVED');
 
         $this->redirect($this->link.'/adminList');
     }
@@ -651,7 +647,7 @@ abstract class AbstractAdminController extends AbstractController
                             $item->$key = $name;
                         endif;
                     else :
-                        $this->flash->_('FILE_UPLOAD_FAILED', 'error', [$file->getName()]);
+                        $this->flash->setError('FILE_UPLOAD_FAILED', [$file->getName()]);
                     endif;
                 endif;
             endforeach;
