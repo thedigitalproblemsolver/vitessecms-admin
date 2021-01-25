@@ -150,7 +150,7 @@ abstract class AbstractAdminController extends AbstractController
         $items = $item::findAll();
 
         if (\count($items) === 0) :
-            $this->flash->_('ADMIN_NO_ITEMS_FOUND');
+            $this->flash->setError('ADMIN_NO_ITEMS_FOUND');
         endif;
 
         return PaginatonFactory::createFromArray(
@@ -324,7 +324,7 @@ abstract class AbstractAdminController extends AbstractController
 
             $this->log->write($item->getId(), \get_class($item), 'Item saved');
 
-            $this->flash->_('ADMIN_ITEM_SAVED');
+            $this->flash->setSucces('ADMIN_ITEM_SAVED');
         endif;
 
         $this->redirect($this->link.'/edit/'.$item->getId(), [], false);
@@ -393,9 +393,6 @@ abstract class AbstractAdminController extends AbstractController
         return $form;
     }
 
-    /**
-     * @throws \Phalcon\Mvc\Collection\Exception
-     */
     public function deleteAction(): void
     {
         /** @var AbstractCollection $item */
@@ -412,11 +409,11 @@ abstract class AbstractAdminController extends AbstractController
                 $this->log->write(
                     $item->getId(),
                     $this->class,
-                    LanguageHelper::_('ADMIN_ITEM_DELETED', [$item->_('name')])
+                    $this->language->get('ADMIN_ITEM_DELETED', [$item->_('name')])
                 );
             endif;
 
-            $this->flash->_('ADMIN_ITEM_DELETED', 'success', [$item->_('name')]);
+            $this->flash->setSucces('ADMIN_ITEM_DELETED', [$item->_('name')]);
 
             if ($item->hasParent()) :
                 $this->class::setFindValue('parentId', $item->getParentId());
@@ -428,15 +425,12 @@ abstract class AbstractAdminController extends AbstractController
                 endif;
             endif;
         else :
-            $this->flash->_('ADMIN_ITEM_NOT_FOUND', 'error');
+            $this->flash->setError('ADMIN_ITEM_NOT_FOUND');
         endif;
 
         $this->redirect($this->link.'/adminList');
     }
 
-    /**
-     * copyAction
-     */
     public function copyAction(): void
     {
         if ($this->dispatcher->getParam(0)) :
@@ -465,12 +459,9 @@ abstract class AbstractAdminController extends AbstractController
         $this->redirect($this->link.'/adminList');
     }
 
-    /**
-     * @throws \Phalcon\Mvc\Collection\Exception
-     */
     public function togglePublishAction(): void
     {
-        $logMessage = LanguageHelper::_('ADMIN_ITEM_PUBLISHED');
+        $logMessage = 'ADMIN_ITEM_PUBLISHED';
 
         /** @var AbstractCollection $item */
         $item = new $this->class();
@@ -482,11 +473,11 @@ abstract class AbstractAdminController extends AbstractController
 
         if ($item->_('published') === true) :
             $item->set('published', false);
-            $logMessage = LanguageHelper::_('ADMIN_ITEM_UNPUBLISHED');
-            $this->flash->_('ADMIN_ITEM_UNPUBLISHED');
+            $logMessage = 'ADMIN_ITEM_UNPUBLISHED';
+            $this->flash->setSucces('ADMIN_ITEM_UNPUBLISHED');
         else :
             $item->set('published', true);
-            $this->flash->_('ADMIN_ITEM_PUBLISHED');
+            $this->flash->setSucces('ADMIN_ITEM_PUBLISHED');
         endif;
 
         $item->beforePublish();
@@ -494,7 +485,7 @@ abstract class AbstractAdminController extends AbstractController
         $item->afterPublish();
         $this->afterPublish($item);
 
-        $this->log->write($item->getId(), $this->class, $logMessage);
+        $this->log->write($item->getId(), $this->class, $this->language->get($logMessage));
 
         $this->redirect();
     }
@@ -510,16 +501,12 @@ abstract class AbstractAdminController extends AbstractController
         $this->unDeletable[] = $id;
     }
 
-    /**
-     * save ordering
-     * @throws \Phalcon\Mvc\Collection\Exception
-     */
     public function saveorderAction(): void
     {
         $ordering = (array)json_decode($this->request->get('ordering'));
         $this->recursiveSaveOrder($ordering[0], $this->class);
 
-        $this->flash->_('ADMIN_ORDERING_SAVED');
+        $this->flash->setSucces('ADMIN_ORDERING_SAVED');
 
         $this->redirect($this->link.'/adminList');
     }
@@ -660,7 +647,7 @@ abstract class AbstractAdminController extends AbstractController
                             $item->$key = $name;
                         endif;
                     else :
-                        $this->flash->_('FILE_UPLOAD_FAILED', 'error', [$file->getName()]);
+                        $this->flash->setError('FILE_UPLOAD_FAILED', [$file->getName()]);
                     endif;
                 endif;
             endforeach;
