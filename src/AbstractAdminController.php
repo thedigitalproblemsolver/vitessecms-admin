@@ -363,7 +363,7 @@ abstract class AbstractAdminController extends AbstractController
 
         $this->view->setVar('content', $this->view->renderTemplate(
             $template,
-            $this->configuration->getRootDir().$templatePath,
+            $this->configuration->getVendorNameDir().$templatePath,
             array_merge([
                 'adminEditItem' => $item,
                 'adminButtons'  => $adminButtons,
