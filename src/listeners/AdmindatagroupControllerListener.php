@@ -165,7 +165,7 @@ class AdmindatagroupControllerListener
 
         $dataHtml = $controller->view->renderTemplate(
             'adminDatagroupFieldlist',
-            $controller->configuration->getRootDir() . 'src/core/resources/views/',
+            $controller->configuration->getVendorNameDir() . 'core/src/resources/views/',
             [
                 'id' => $datagroup->getId(),
                 'tableId' => uniqid('',false),
@@ -176,7 +176,7 @@ class AdmindatagroupControllerListener
 
         $dataHtml .= $controller->view->renderTemplate(
             'adminDatagroupSluglist',
-            $controller->configuration->getRootDir() . 'src/core/resources/views/',
+            $controller->configuration->getVendorNameDir() . 'core/src/resources/views/',
             [
                 'rows' => $slugRows,
                 'categories' => $controller->getSlugCategories($datagroup),
@@ -186,7 +186,7 @@ class AdmindatagroupControllerListener
 
         $dataHtml .=$controller->view->renderTemplate(
             'adminDatagroupSeoTitlelist',
-            $controller->configuration->getRootDir() . 'src/core/resources/views/',
+            $controller->configuration->getVendorNameDir() . 'core/src/resources/views/',
             [
                 'rows' => $seoTitleRows,
                 'categories' => $controller->getSeoTitleCategories($datagroup),

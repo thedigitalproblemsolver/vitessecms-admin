@@ -101,7 +101,7 @@ abstract class AbstractAdminController extends AbstractController
         $this->listSortable = false;
         $this->listNestable = false;
         $this->listTemplate = 'adminList';
-        $this->listTemplatePath = $this->configuration->getVendorNameDir().'vitessecms/src/core/resources/views/';
+        $this->listTemplatePath = $this->configuration->getVendorNameDir().'core/src/resources/views/';
         $this->controllerName = (new \ReflectionClass($this))->getShortName();
         $this->renderParams = [];
     }
@@ -111,7 +111,7 @@ abstract class AbstractAdminController extends AbstractController
         $adminListButtons = $this->view->renderModuleTemplate(
             $this->router->getModuleName(),
             str_replace('admin', '', $this->router->getControllerName()).'Buttons',
-            '/admin/list/'
+            'admin/list/'
         );
 
         $this->view->set(
@@ -169,7 +169,7 @@ abstract class AbstractAdminController extends AbstractController
             'class'        => 'list-group admin-list',
             'listSortable' => false,
         ];
-        $templatePath = $this->configuration->getRootDir().'src/core/resources/views/admin';
+        $templatePath = $this->configuration->getVendorNameDir().'core/src/resources/views/admin';
         if ($level === 0 && $this->listSortable) :
             $params = [
                 'id'           => uniqid('item-', false),
@@ -333,7 +333,7 @@ abstract class AbstractAdminController extends AbstractController
     public function editAction(
         string $itemId = null,
         string $template = 'editForm',
-        string $templatePath = 'src/core/resources/views/admin/',
+        string $templatePath = 'core/src/resources/views/admin/',
         AbstractForm $form = null
     ): void {
         $adminEditForm = '';
