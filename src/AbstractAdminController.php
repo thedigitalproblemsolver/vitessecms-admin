@@ -274,10 +274,6 @@ abstract class AbstractAdminController extends AbstractController
         return '';
     }
 
-    /**
-     * @throws \Phalcon\Exception
-     * @throws \Phalcon\Mvc\Collection\Exception
-     */
     public function saveAction(?string $itemId = null, AbstractCollection $item = null, AbstractForm $form = null): void
     {
         /** @deprecated item should be passes in controller */
@@ -293,6 +289,7 @@ abstract class AbstractAdminController extends AbstractController
 
         //TODO kunnen dit soort zaken in event listners?
         $this->beforeSave($item);
+        $this->eventsManager->fire($this->controllerName.':beforeSave', $this, $item);
         $this->beforePostBinding($item);
 
         if ($form === null) :
