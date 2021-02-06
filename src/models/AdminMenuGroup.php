@@ -2,8 +2,8 @@
 
 namespace VitesseCms\Admin\Models;
 
-use VitesseCms\Core\Models\Datagroup;
-use VitesseCms\Core\Models\DatagroupIterator;
+use VitesseCms\Datagroup\Models\Datagroup;
+use VitesseCms\Datagroup\Models\DatagroupIterator;
 
 class AdminMenuGroup
 {

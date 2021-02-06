@@ -9,6 +9,5 @@ class InitiateAdminListeners
     public static function setListeners(Manager $eventsManager): void
     {
         $eventsManager->attach('adminMenu', new AdminMenuListener());
-        $eventsManager->attach('AdmindatagroupController', new AdmindatagroupControllerListener());
     }
 }

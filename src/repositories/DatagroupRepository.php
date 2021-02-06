@@ -2,11 +2,11 @@
 
 namespace VitesseCms\Admin\Repositories;
 
-use VitesseCms\Core\Models\DatagroupIterator;
+use VitesseCms\Datagroup\Models\DatagroupIterator;
 use VitesseCms\Database\Models\FindValue;
 use VitesseCms\Database\Models\FindValueIterator;
 
-class DatagroupRepository extends \VitesseCms\Core\Repositories\DatagroupRepository
+class DatagroupRepository extends \VitesseCms\Datagroup\Repositories\DatagroupRepository
 {
     public function getBySystemComponent(string $component): ?DatagroupIterator
     {
