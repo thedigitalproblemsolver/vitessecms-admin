@@ -4,7 +4,6 @@ namespace VitesseCms\Admin\Listeners;
 
 use VitesseCms\Admin\Models\AdminMenu;
 use VitesseCms\Admin\Models\AdminMenuNavBarChildren;
-use VitesseCms\Datagroup\Models\Datagroup;
 use Phalcon\Events\Event;
 
 class AdminMenuListener
