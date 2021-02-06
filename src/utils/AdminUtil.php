@@ -9,7 +9,7 @@ use VitesseCms\Admin\Repositories\DatagroupRepository;
 use VitesseCms\Core\Services\ViewService;
 use VitesseCms\Core\Enum\SystemEnum;
 use VitesseCms\Core\Forms\AdminToolbarForm;
-use VitesseCms\Core\Models\Datagroup;
+use VitesseCms\Datagroup\Models\Datagroup;
 use VitesseCms\Setting\Services\SettingService;
 use VitesseCms\User\Models\User;
 use VitesseCms\User\Utils\PermissionUtils;

@@ -9,7 +9,7 @@ use VitesseCms\Core\Factories\PaginatonFactory;
 use VitesseCms\Core\Forms\AdminlistForm;
 use VitesseCms\Core\Helpers\DatagroupHelper;
 use VitesseCms\Core\Helpers\ItemHelper;
-use VitesseCms\Core\Models\Datagroup;
+use VitesseCms\Datagroup\Models\Datagroup;
 use VitesseCms\Core\Models\Elasticsearch;
 use VitesseCms\Core\Models\Log;
 use VitesseCms\Core\Utils\FileUtil;

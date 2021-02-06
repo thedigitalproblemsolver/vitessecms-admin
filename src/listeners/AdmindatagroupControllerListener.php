@@ -4,7 +4,7 @@ namespace VitesseCms\Admin\Listeners;
 
 use VitesseCms\Core\Controllers\AdmindatagroupController;
 use VitesseCms\Core\Helpers\ItemHelper;
-use VitesseCms\Core\Models\Datagroup;
+use VitesseCms\Datagroup\Models\Datagroup;
 use Phalcon\Events\Event;
 use \stdClass;
 

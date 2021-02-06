@@ -2,7 +2,7 @@
 
 namespace VitesseCms\Admin\Repositories;
 
-use VitesseCms\Core\Models\DatagroupIterator;
+use VitesseCms\Datagroup\Models\DatagroupIterator;
 use VitesseCms\Database\Models\FindValue;
 use VitesseCms\Database\Models\FindValueIterator;
 
