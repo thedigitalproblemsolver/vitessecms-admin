@@ -13,8 +13,7 @@ class AdminMenuListener
     {
         if ($adminMenu->getUser()->getPermissionRole() === 'superadmin') :
             $children = new AdminMenuNavBarChildren();
-            $children->addChild('Data groups','admin/core/admindatagroup/adminList')
-                ->addChild('Blocks','admin/block/adminblock/adminList')
+            $children->addChild('Blocks','admin/block/adminblock/adminList')
                 ->addChild('BlockPositions','admin/block/adminblockposition/adminList')
             ;
             $formOptionsGroups = $adminMenu->getGroups()->getByKey('formOptions');
