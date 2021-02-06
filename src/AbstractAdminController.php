@@ -7,7 +7,7 @@ use VitesseCms\Content\Models\Item;
 use VitesseCms\Core\AbstractController;
 use VitesseCms\Core\Factories\PaginatonFactory;
 use VitesseCms\Core\Forms\AdminlistForm;
-use VitesseCms\Core\Helpers\DatagroupHelper;
+use VitesseCms\Datagroup\Helpers\DatagroupHelper;
 use VitesseCms\Core\Helpers\ItemHelper;
 use VitesseCms\Datagroup\Models\Datagroup;
 use VitesseCms\Core\Models\Elasticsearch;
