@@ -2,7 +2,7 @@
 
 namespace VitesseCms\Admin\Utils;
 
-use VitesseCms\Core\Models\Datagroup;
+use VitesseCms\Datagroup\Models\Datagroup;
 use VitesseCms\Database\AbstractCollection;
 use VitesseCms\Core\Helpers\ItemHelper;
 use VitesseCms\Database\Utils\MongoUtil;
