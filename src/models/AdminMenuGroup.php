@@ -2,7 +2,6 @@
 
 namespace VitesseCms\Admin\Models;
 
-use VitesseCms\Datagroup\Models\Datagroup;
 use VitesseCms\Datagroup\Models\DatagroupIterator;
 
 class AdminMenuGroup

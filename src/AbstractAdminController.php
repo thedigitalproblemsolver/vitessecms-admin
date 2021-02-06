@@ -205,10 +205,7 @@ abstract class AbstractAdminController extends AbstractController
                 ]
             );
 
-            if (
-                $item->_('hasChildren')
-                && $this->configuration->renderAdminListChildren()
-            ) :
+            if ($item->hasChildren() && $this->configuration->renderAdminListChildren()) :
                 if ($item->_('datagroup')) :
                     Datagroup::setFindValue('parentId', $item->_('datagroup'));
                     $datagroup = Datagroup::findFirst();
