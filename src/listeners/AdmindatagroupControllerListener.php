@@ -2,7 +2,7 @@
 
 namespace VitesseCms\Admin\Listeners;
 
-use VitesseCms\Core\Controllers\AdmindatagroupController;
+use VitesseCms\Datagroup\Controllers\AdmindatagroupController;
 use VitesseCms\Core\Helpers\ItemHelper;
 use VitesseCms\Datagroup\Models\Datagroup;
 use Phalcon\Events\Event;
