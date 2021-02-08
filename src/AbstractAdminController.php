@@ -11,7 +11,7 @@ use VitesseCms\Datagroup\Helpers\DatagroupHelper;
 use VitesseCms\Core\Helpers\ItemHelper;
 use VitesseCms\Datagroup\Models\Datagroup;
 use VitesseCms\Core\Models\Elasticsearch;
-use VitesseCms\Core\Models\Log;
+use VitesseCms\Log\Models\Log;
 use VitesseCms\Core\Utils\FileUtil;
 use VitesseCms\Database\AbstractCollection;
 use VitesseCms\Database\Interfaces\BaseCollectionInterface;
