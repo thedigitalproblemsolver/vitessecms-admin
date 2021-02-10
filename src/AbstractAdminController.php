@@ -101,7 +101,7 @@ abstract class AbstractAdminController extends AbstractController
         $this->listSortable = false;
         $this->listNestable = false;
         $this->listTemplate = 'adminList';
-        $this->listTemplatePath = $this->configuration->getVendorNameDir().'core/src/resources/views/';
+        $this->listTemplatePath = $this->configuration->getVendorNameDir().'admin/src/resources/views/';
         $this->controllerName = (new \ReflectionClass($this))->getShortName();
         $this->renderParams = [];
     }
@@ -169,7 +169,7 @@ abstract class AbstractAdminController extends AbstractController
             'class'        => 'list-group admin-list',
             'listSortable' => false,
         ];
-        $templatePath = $this->configuration->getVendorNameDir().'core/src/resources/views/admin';
+        $templatePath = $this->configuration->getVendorNameDir().'admin/src/resources/views/admin';
         if ($level === 0 && $this->listSortable) :
             $params = [
                 'id'           => uniqid('item-', false),
