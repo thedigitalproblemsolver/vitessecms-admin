@@ -327,7 +327,7 @@ abstract class AbstractAdminController extends AbstractController
     public function editAction(
         string $itemId = null,
         string $template = 'editForm',
-        string $templatePath = 'core/src/resources/views/admin/',
+        string $templatePath = 'form/src/resources/views/admin/',
         AbstractForm $form = null
     ): void {
         $adminEditForm = '';
