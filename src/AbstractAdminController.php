@@ -88,6 +88,11 @@ abstract class AbstractAdminController extends AbstractController
      */
     protected $renderParams;
 
+    /**
+     * @var bool
+     */
+    protected $displayEditButton;
+
     public function onConstruct()
     {
         parent::onConstruct();
@@ -101,9 +106,10 @@ abstract class AbstractAdminController extends AbstractController
         $this->listSortable = false;
         $this->listNestable = false;
         $this->listTemplate = 'adminList';
-        $this->listTemplatePath = $this->configuration->getVendorNameDir().'core/src/resources/views/';
+        $this->listTemplatePath = $this->configuration->getVendorNameDir().'admin/src/resources/views/';
         $this->controllerName = (new \ReflectionClass($this))->getShortName();
         $this->renderParams = [];
+        $this->displayEditButton = true;
     }
 
     public function adminListAction(): void
@@ -125,6 +131,7 @@ abstract class AbstractAdminController extends AbstractController
                     'isAjax'           => $this->request->isAjax(),
                     'filter'           => $this->adminListFilter(),
                     'adminListButtons' => $adminListButtons,
+                    'displayEditButton' => $this->displayEditButton
                 ]
             )
         );
@@ -169,7 +176,7 @@ abstract class AbstractAdminController extends AbstractController
             'class'        => 'list-group admin-list',
             'listSortable' => false,
         ];
-        $templatePath = $this->configuration->getVendorNameDir().'core/src/resources/views/admin';
+        $templatePath = $this->configuration->getVendorNameDir().'admin/src/resources/views/admin';
         if ($level === 0 && $this->listSortable) :
             $params = [
                 'id'           => uniqid('item-', false),
@@ -327,7 +334,7 @@ abstract class AbstractAdminController extends AbstractController
     public function editAction(
         string $itemId = null,
         string $template = 'editForm',
-        string $templatePath = 'core/src/resources/views/admin/',
+        string $templatePath = 'form/src/resources/views/admin/',
         AbstractForm $form = null
     ): void {
         $adminEditForm = '';
