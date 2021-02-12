@@ -6,7 +6,7 @@ use VitesseCms\Admin\Utils\AdminListUtil;
 use VitesseCms\Content\Models\Item;
 use VitesseCms\Core\AbstractController;
 use VitesseCms\Core\Factories\PaginatonFactory;
-use VitesseCms\Core\Forms\AdminlistForm;
+use VitesseCms\Admin\Forms\AdminlistForm;
 use VitesseCms\Datagroup\Helpers\DatagroupHelper;
 use VitesseCms\Core\Helpers\ItemHelper;
 use VitesseCms\Datagroup\Models\Datagroup;
@@ -123,7 +123,11 @@ abstract class AbstractAdminController extends AbstractController
                     'list'             => $this->recursiveAdminList($this->getAdminListPagination()),
                     'editBaseUri'      => $this->link,
                     'isAjax'           => $this->request->isAjax(),
-                    'filter'           => $this->adminListFilter(),
+                    'filter'           => $this->eventsManager->fire(
+                        $this->class . ':adminListFilter',
+                        $this,
+                        new AdminlistForm()
+                    ),
                     'adminListButtons' => $adminListButtons,
                 ]
             )
@@ -252,23 +256,6 @@ abstract class AbstractAdminController extends AbstractController
     protected function getAdminlistName(AbstractCollection $item): string
     {
         return $item->getAdminlistName();
-    }
-
-    protected function adminListFilter(): string
-    {
-        $item = new $this->class();
-        /** @var AbstractForm $form */
-        $form = new AdminlistForm($item);
-        $form->bind($this->request->getPost(), $form);
-
-        if ($form->count() > 2) :
-            return $form->renderForm(
-                $this->link.'/'.$this->router->getActionName(),
-                'adminFilter'
-            );
-        endif;
-
-        return '';
     }
 
     public function saveAction(?string $itemId = null, AbstractCollection $item = null, AbstractForm $form = null): void
@@ -743,5 +730,10 @@ abstract class AbstractAdminController extends AbstractController
     public function isListSortable(): bool
     {
         return $this->listSortable;
+    }
+
+    public function getLink(): string
+    {
+        return $this->link;
     }
 }
