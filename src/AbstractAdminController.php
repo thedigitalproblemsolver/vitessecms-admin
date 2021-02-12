@@ -124,7 +124,7 @@ abstract class AbstractAdminController extends AbstractController
                     'editBaseUri'      => $this->link,
                     'isAjax'           => $this->request->isAjax(),
                     'filter'           => $this->eventsManager->fire(
-                        $this->class . ':adminListFilter',
+                        get_class($this) . ':adminListFilter',
                         $this,
                         new AdminlistForm()
                     ),
@@ -326,7 +326,7 @@ abstract class AbstractAdminController extends AbstractController
             $item = $this->class::findById($itemId);
         endif;
 
-        $this->eventsManager->fire($this->controllerName.':beforeEdit', $this, $item);
+        $this->eventsManager->fire(get_class($this).':beforeEdit', $this, $item);
 
         $form = $this->getItemForm($form, $item);
         if ($form !== null) :
