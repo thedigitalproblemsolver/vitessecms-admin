@@ -88,6 +88,9 @@ abstract class AbstractAdminController extends AbstractController
      */
     protected $renderParams;
 
+    /**
+     * @var bool
+     */
     protected $displayEditButton;
 
     public function onConstruct()
