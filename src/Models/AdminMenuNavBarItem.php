@@ -35,7 +35,8 @@ class AdminMenuNavBarItem
         string $class,
         string $extra,
         array $children
-    ) {
+    )
+    {
         $this->name = $name;
         $this->slug = $slug;
         $this->class = $class;
@@ -46,10 +47,10 @@ class AdminMenuNavBarItem
     public function toArray(): array
     {
         return [
-            'name'     => $this->name,
-            'slug'     => $this->slug,
-            'class'    => $this->class,
-            'extra'    => $this->extra,
+            'name' => $this->name,
+            'slug' => $this->slug,
+            'class' => $this->class,
+            'extra' => $this->extra,
             'children' => $this->children,
         ];
     }

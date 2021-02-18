@@ -57,6 +57,11 @@ class AdminUtil
         $this->datagroupRepository = $datagroupRepository;
     }
 
+    public static function isAdminPage(): bool
+    {
+        return !(substr_count($_SERVER['REQUEST_URI'], 'admin/') === 0);
+    }
+
     public function toolbar(): string
     {
         $adminGroupIterator = new AdminMenuGroupIterator();
@@ -112,10 +117,5 @@ class AdminUtil
         endforeach;
 
         return array_values($navbarItems);
-    }
-
-    public static function isAdminPage(): bool
-    {
-        return !(substr_count($_SERVER['REQUEST_URI'], 'admin/') === 0);
     }
 }

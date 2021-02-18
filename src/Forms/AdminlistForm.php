@@ -20,16 +20,16 @@ class AdminlistForm extends AbstractForm implements AdminlistFormInterface
         $this->setColumn(12, 'input', UiUtils::getScreens());
         $this->setAjaxFunction('admin.fillAdminList');
         $this->addSubmitButton('%ADMIN_FILTER%')
-            ->addEmptyButton('%FORM_EMPTY%')
-        ;
+            ->addEmptyButton('%FORM_EMPTY%');
 
         return parent::renderForm($action, $formName, $noAjax, $newWindow);
     }
+
     public function addNameField(AbstractFormInterface $form): void
     {
         $form->addText(
             '%CORE_NAME%',
-            'filter[name.'.$form->configuration->getLanguageShort().']'
+            'filter[name.' . $form->configuration->getLanguageShort() . ']'
         );
     }
 
