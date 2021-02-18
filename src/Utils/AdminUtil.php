@@ -61,7 +61,11 @@ class AdminUtil
     {
         $adminGroupIterator = new AdminMenuGroupIterator();
         foreach (SystemEnum::COMPONENTS as $key => $label) :
-            $adminGroupIterator->add(new AdminMenuGroup($label, $key, $this->datagroupRepository->getBySystemComponent($key)));
+            $adminGroupIterator->add(new AdminMenuGroup(
+                $label,
+                $key,
+                $this->datagroupRepository->getBySystemComponent($key)
+            ));
         endforeach;
 
         $adminMenu = new AdminMenu([], $adminGroupIterator, $this->setting, $this->user);
