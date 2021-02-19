@@ -57,11 +57,20 @@ class AdminUtil
         $this->datagroupRepository = $datagroupRepository;
     }
 
+    public static function isAdminPage(): bool
+    {
+        return !(substr_count($_SERVER['REQUEST_URI'], 'admin/') === 0);
+    }
+
     public function toolbar(): string
     {
         $adminGroupIterator = new AdminMenuGroupIterator();
         foreach (SystemEnum::COMPONENTS as $key => $label) :
-            $adminGroupIterator->add(new AdminMenuGroup($label, $key, $this->datagroupRepository->getBySystemComponent($key)));
+            $adminGroupIterator->add(new AdminMenuGroup(
+                $label,
+                $key,
+                $this->datagroupRepository->getBySystemComponent($key)
+            ));
         endforeach;
 
         $adminMenu = new AdminMenu([], $adminGroupIterator, $this->setting, $this->user);
@@ -108,10 +117,5 @@ class AdminUtil
         endforeach;
 
         return array_values($navbarItems);
-    }
-
-    public static function isAdminPage(): bool
-    {
-        return !(substr_count($_SERVER['REQUEST_URI'], 'admin/') === 0);
     }
 }

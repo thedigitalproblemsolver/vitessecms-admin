@@ -19,7 +19,8 @@ class AdminMenuNavBarChild
      */
     protected $target;
 
-    public function __construct(string $name, string $slug, string $target = '') {
+    public function __construct(string $name, string $slug, string $target = '')
+    {
         $this->name = $name;
         $this->slug = $slug;
         $this->target = $target;
@@ -28,9 +29,9 @@ class AdminMenuNavBarChild
     public function toArray(): array
     {
         return [
-            'name'     => $this->name,
-            'slug'     => $this->slug,
-            'target'    => $this->target
+            'name' => $this->name,
+            'slug' => $this->slug,
+            'target' => $this->target
         ];
     }
 }

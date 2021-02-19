@@ -6,7 +6,7 @@ use VitesseCms\Admin\Utils\AdminListUtil;
 use VitesseCms\Content\Models\Item;
 use VitesseCms\Core\AbstractController;
 use VitesseCms\Core\Factories\PaginatonFactory;
-use VitesseCms\Core\Forms\AdminlistForm;
+use VitesseCms\Admin\Forms\AdminlistForm;
 use VitesseCms\Datagroup\Helpers\DatagroupHelper;
 use VitesseCms\Core\Helpers\ItemHelper;
 use VitesseCms\Datagroup\Models\Datagroup;
@@ -88,11 +88,16 @@ abstract class AbstractAdminController extends AbstractController
      */
     protected $renderParams;
 
+    /**
+     * @var bool
+     */
+    protected $displayEditButton;
+
     public function onConstruct()
     {
         parent::onConstruct();
 
-        $this->link = $this->url->getBaseUri().'admin/'.$this->router->getModuleName().'/'.$this->router->getControllerName();
+        $this->link = $this->url->getBaseUri() . 'admin/' . $this->router->getModuleName() . '/' . $this->router->getControllerName();
         $this->unDeletable = [];
         $this->class = null;
         $this->classForm = null;
@@ -101,16 +106,17 @@ abstract class AbstractAdminController extends AbstractController
         $this->listSortable = false;
         $this->listNestable = false;
         $this->listTemplate = 'adminList';
-        $this->listTemplatePath = $this->configuration->getVendorNameDir().'admin/src/resources/views/';
+        $this->listTemplatePath = $this->configuration->getVendorNameDir() . 'admin/src/Resources/views/';
         $this->controllerName = (new \ReflectionClass($this))->getShortName();
         $this->renderParams = [];
+        $this->displayEditButton = true;
     }
 
     public function adminListAction(): void
     {
         $adminListButtons = $this->view->renderModuleTemplate(
             $this->router->getModuleName(),
-            str_replace('admin', '', $this->router->getControllerName()).'Buttons',
+            str_replace('admin', '', $this->router->getControllerName()) . 'Buttons',
             'admin/list/'
         );
 
@@ -120,11 +126,16 @@ abstract class AbstractAdminController extends AbstractController
                 $this->listTemplate,
                 $this->listTemplatePath,
                 [
-                    'list'             => $this->recursiveAdminList($this->getAdminListPagination()),
-                    'editBaseUri'      => $this->link,
-                    'isAjax'           => $this->request->isAjax(),
-                    'filter'           => $this->adminListFilter(),
+                    'list' => $this->recursiveAdminList($this->getAdminListPagination()),
+                    'editBaseUri' => $this->link,
+                    'isAjax' => $this->request->isAjax(),
+                    'filter' => $this->eventsManager->fire(
+                        get_class($this) . ':adminListFilter',
+                        $this,
+                        new AdminlistForm()
+                    ),
                     'adminListButtons' => $adminListButtons,
+                    'displayEditButton' => $this->displayEditButton
                 ]
             )
         );
@@ -132,52 +143,23 @@ abstract class AbstractAdminController extends AbstractController
         $this->prepareView();
     }
 
-    protected function getAdminListPagination(?string $parentId = null): \stdClass
-    {
-        /** @var AbstractCollection $item */
-        $item = new $this->class();
-        if ($parentId === null) :
-            $this->applyFilter($item);
-            $item::setFindParseFilter(true);
-        endif;
-        $item::setFindPublished(false);
-        $item::addFindOrder($this->listOrder, $this->listOrderDirection);
-        $item::setRenderFields(false);
-        $item::setFindLimit(999);
-        if ($parentId !== null) :
-            $item::setFindValue('parentId', $parentId);
-        endif;
-        $items = $item::findAll();
-
-        if (\count($items) === 0) :
-            $this->flash->setError('ADMIN_NO_ITEMS_FOUND');
-        endif;
-
-        return PaginatonFactory::createFromArray(
-            $items,
-            $this->request,
-            $this->url,
-            'page_'.$parentId
-        );
-    }
-
     protected function recursiveAdminList(\stdClass $pagination, int $level = 0): string
     {
         $params = [
-            'id'           => false,
-            'ajaxurl'      => false,
-            'class'        => 'list-group admin-list',
+            'id' => false,
+            'ajaxurl' => false,
+            'class' => 'list-group admin-list',
             'listSortable' => false,
         ];
-        $templatePath = $this->configuration->getVendorNameDir().'admin/src/resources/views/admin';
+        $templatePath = $this->configuration->getVendorNameDir() . 'admin/src/Resources/views/admin';
         if ($level === 0 && $this->listSortable) :
             $params = [
-                'id'           => uniqid('item-', false),
-                'ajaxurl'      => 'admin'.'/'.
-                    $this->router->getModuleName().'/'.
-                    $this->router->getControllerName().'/'.
+                'id' => uniqid('item-', false),
+                'ajaxurl' => 'admin' . '/' .
+                    $this->router->getModuleName() . '/' .
+                    $this->router->getControllerName() . '/' .
                     'saveorder',
-                'class'        => 'list-group admin-list sortable',
+                'class' => 'list-group admin-list sortable',
                 'listSortable' => true,
             ];
         endif;
@@ -186,22 +168,22 @@ abstract class AbstractAdminController extends AbstractController
 
         /** @var AbstractCollection $item */
         foreach ($pagination->items as $item) :
-            $this->eventsManager->fire($this->controllerName.':adminListItem', $this, $item);
+            $this->eventsManager->fire($this->controllerName . ':adminListItem', $this, $item);
 
             $return .= $this->view->renderTemplate(
                 'recursiveAdminListItemStart',
                 $templatePath,
                 [
-                    'item'              => $item,
-                    'adminListButtons'  => AdminListUtil::getAdminListButtons(
+                    'item' => $item,
+                    'adminListButtons' => AdminListUtil::getAdminListButtons(
                         $item,
                         str_replace($this->url->getBaseUri(), '', $this->link),
                         $this->acl
                     ),
                     'adminListRowClass' => ItemHelper::getRowStateClass($item->isPublished()),
-                    'adminListName'     => $item->getAdminlistName(),
-                    'editBaseUri'       => $this->link,
-                    'adminListExtra'    => $item->getAdminListExtra(),
+                    'adminListName' => $item->getAdminlistName(),
+                    'editBaseUri' => $this->link,
+                    'adminListExtra' => $item->getAdminListExtra(),
                 ]
             );
 
@@ -242,33 +224,84 @@ abstract class AbstractAdminController extends AbstractController
         return $return;
     }
 
-    /**
-     * @param AbstractCollection $item
-     *
-     * @return string
-     *
-     * @deprecated wordt deze nog gebruikt? Anders mag hij weg
-     */
-    protected function getAdminlistName(AbstractCollection $item): string
+    protected function getAdminListPagination(?string $parentId = null): \stdClass
     {
-        return $item->getAdminlistName();
-    }
-
-    protected function adminListFilter(): string
-    {
+        /** @var AbstractCollection $item */
         $item = new $this->class();
-        /** @var AbstractForm $form */
-        $form = new AdminlistForm($item);
-        $form->bind($this->request->getPost(), $form);
+        if ($parentId === null) :
+            $this->applyFilter($item);
+            $item::setFindParseFilter(true);
+        endif;
+        $item::setFindPublished(false);
+        $item::addFindOrder($this->listOrder, $this->listOrderDirection);
+        $item::setRenderFields(false);
+        $item::setFindLimit(999);
+        if ($parentId !== null) :
+            $item::setFindValue('parentId', $parentId);
+        endif;
+        $items = $item::findAll();
 
-        if ($form->count() > 2) :
-            return $form->renderForm(
-                $this->link.'/'.$this->router->getActionName(),
-                'adminFilter'
-            );
+        if (\count($items) === 0) :
+            $this->flash->setError('ADMIN_NO_ITEMS_FOUND');
         endif;
 
-        return '';
+        return PaginatonFactory::createFromArray(
+            $items,
+            $this->request,
+            $this->url,
+            'page_' . $parentId
+        );
+    }
+
+    protected function applyFilter(AbstractCollection $item): void
+    {
+        $filter = [];
+
+        if (
+            \is_array($this->request->get('filter'))
+            && !empty($this->request->get('filter'))
+        ):
+            $resetSortable = false;
+            foreach ($this->request->get('filter') as $filterName => $filterValue) :
+                if (!empty($filterValue)) :
+                    $filter[$filterName] = trim($filterValue);
+                    $resetSortable = true;
+                endif;
+            endforeach;
+            $this->session->set('filter_' . $this->class, $filter);
+            if ($resetSortable) :
+                $this->listSortable = false;
+                $this->listNestable = false;
+            endif;
+        elseif (
+            \is_array($this->session->get('filter_' . $this->class))
+            && !empty($this->session->get('filter_' . $this->class))
+        ) :
+            $_REQUEST['filter'] = $filter = $this->session->get('filter_' . $this->class);
+            $this->listSortable = false;
+            $this->listNestable = false;
+        else :
+            $item::setFindValue('parentId', ['$in' => ['', null]]);
+        endif;
+
+        if (\count($filter) > 1 && isset($filter['datagroup'])) :
+            $datagroup = Datagroup::findById($this->request->get('filter')['datagroup']);
+            if ($datagroup->_('itemOrdering')) :
+                $this->listOrder = $datagroup->_('itemOrdering');
+            endif;
+
+            if ($datagroup->_('sortable')) :
+                $this->listSortable = true;
+                $this->listNestable = true;
+            endif;
+
+            $datagroups = [];
+            $datagroupChildren = DatagroupHelper::getChildrenFromRoot($datagroup);
+            foreach ($datagroupChildren as $datagroupChild) :
+                $datagroups[] = (string)$datagroupChild->getId();
+            endforeach;
+            $item::setFindValue('datagroup', ['$in' => $datagroups]);
+        endif;
     }
 
     public function saveAction(?string $itemId = null, AbstractCollection $item = null, AbstractForm $form = null): void
@@ -286,7 +319,7 @@ abstract class AbstractAdminController extends AbstractController
 
         //TODO kunnen dit soort zaken in event listners?
         $this->beforeSave($item);
-        $this->eventsManager->fire($this->controllerName.':beforeSave', $this, $item);
+        $this->eventsManager->fire($this->controllerName . ':beforeSave', $this, $item);
         $this->beforePostBinding($item);
 
         if ($form === null) :
@@ -300,7 +333,7 @@ abstract class AbstractAdminController extends AbstractController
 
             /** move all Model::beforeModelSave to listeners */
             $this->beforeModelSave($item);
-            $this->eventsManager->fire($this->controllerName.':beforeModelSave', $this, $item);
+            $this->eventsManager->fire($this->controllerName . ':beforeModelSave', $this, $item);
 
             $item->save();
 
@@ -321,50 +354,23 @@ abstract class AbstractAdminController extends AbstractController
             $this->flash->setSucces('ADMIN_ITEM_SAVED');
         endif;
 
-        $this->redirect($this->link.'/edit/'.$item->getId(), [], false);
+        $this->redirect($this->link . '/edit/' . $item->getId(), [], false);
     }
 
-    public function editAction(
-        string $itemId = null,
-        string $template = 'editForm',
-        string $templatePath = 'form/src/resources/views/admin/',
-        AbstractForm $form = null
-    ): void {
-        $adminEditForm = '';
-        /** @var AbstractCollection $item */
-        $item = new $this->class();
-        if ($itemId !== null) :
-            $this->class::setFindPublished(false);
-            $this->class::setRenderFields(false);
-            $item = $this->class::findById($itemId);
-        endif;
+    /**
+     * @param AbstractCollection $item
+     *
+     * @deprecated split the functionalitie between beforeModelSave and beforePostBinding
+     */
+    public function beforeSave(AbstractCollection $item)
+    {
+    }
 
-        $this->eventsManager->fire($this->controllerName.':beforeEdit', $this, $item);
-
-        $form = $this->getItemForm($form, $item);
-        if ($form !== null) :
-            $adminEditForm = $form->renderForm(
-                'admin/'.$this->router->getModuleName().'/'.$this->router->getControllerName().'/save/'.$itemId
-            );
-        endif;
-
-        $adminButtons = $this->view->renderModuleTemplate(
-            $this->router->getModuleName(),
-            str_replace('admin', '', $this->router->getControllerName()).'Buttons',
-            '/admin/edit/',
-            ['editId' => $item->getId()]
-        );
-
-        $this->view->setVar('content', $this->view->renderTemplate(
-            $template,
-            $this->configuration->getVendorNameDir().$templatePath,
-            array_merge([
-                'adminEditItem' => $item,
-                'adminButtons'  => $adminButtons,
-                'adminEditForm' => $adminEditForm,
-            ], $this->renderParams)
-        ));
-        $this->prepareView();
+    /**
+     * @param AbstractCollection $item
+     */
+    public function beforePostBinding(AbstractCollection $item): void
+    {
     }
 
     protected function getItemForm(?AbstractForm $form, AbstractCollection $item): ?AbstractForm
@@ -376,169 +382,15 @@ abstract class AbstractAdminController extends AbstractController
 
         if ($form !== null) :
             $form->setEntity($item);
-            if(method_exists($form,'setRepositories')) :
+            if (method_exists($form, 'setRepositories')) :
                 $form->setRepositories($this->repositories);
             endif;
-            if(method_exists($form,'buildForm')) :
+            if (method_exists($form, 'buildForm')) :
                 $form->buildForm();
             endif;
         endif;
 
         return $form;
-    }
-
-    public function deleteAction(): void
-    {
-        /** @var AbstractCollection $item */
-        $item = new $this->class();
-        $item::setFindPublished(false);
-        $item::setRenderFields(false);
-        $item = $item::findById($this->dispatcher->getParam(0));
-        if ($item) :
-            $item->beforeDelete();
-            $item->delete();
-            $item->afterDelete();
-
-            if ($this->class !== Log::class) :
-                $this->log->write(
-                    $item->getId(),
-                    $this->class,
-                    $this->language->get('ADMIN_ITEM_DELETED', [$item->_('name')])
-                );
-            endif;
-
-            $this->flash->setSucces('ADMIN_ITEM_DELETED', [$item->_('name')]);
-
-            if ($item->hasParent()) :
-                $this->class::setFindValue('parentId', $item->getParentId());
-                $count = $this->class::count();
-                if ($count === 0) :
-                    $parent = $this->class::findById($item->getParentId());
-                    $parent->hasChildren = false;
-                    $parent->save();
-                endif;
-            endif;
-        else :
-            $this->flash->setError('ADMIN_ITEM_NOT_FOUND');
-        endif;
-
-        $this->redirect($this->link.'/adminList');
-    }
-
-    public function copyAction(): void
-    {
-        if ($this->dispatcher->getParam(0)) :
-            $this->class::setFindPublished(false);
-            $item = $this->class::findById($this->dispatcher->getParam(0));
-            $item->setId(new ObjectId());
-            $item->set('createdAt', date('Y-m-d H:i:s'));
-            $item->set('published', false);
-
-            $parsedLanguage = [];
-            foreach (Language::findAll() as $language) :
-                if (!\in_array($language->_('short'), $parsedLanguage, true)) :
-                    $item->set(
-                        'name',
-                        $item->_('name', $language->_('short')).' - copy',
-                        true,
-                        $language->_('short')
-                    );
-                    $parsedLanguage[] = $language->_('short');
-                endif;
-            endforeach;
-
-            $item->save();
-        endif;
-
-        $this->redirect($this->link.'/adminList');
-    }
-
-    public function togglePublishAction(): void
-    {
-        $logMessage = 'ADMIN_ITEM_PUBLISHED';
-
-        /** @var AbstractCollection $item */
-        $item = new $this->class();
-        $item::setFindPublished(false);
-        if (\is_callable([$item, 'setRenderFields'])) :
-            $item::setRenderFields(false);
-        endif;
-        $item = $item::findById($this->dispatcher->getParam(0));
-
-        if ($item->_('published') === true) :
-            $item->set('published', false);
-            $logMessage = 'ADMIN_ITEM_UNPUBLISHED';
-            $this->flash->setSucces('ADMIN_ITEM_UNPUBLISHED');
-        else :
-            $item->set('published', true);
-            $this->flash->setSucces('ADMIN_ITEM_PUBLISHED');
-        endif;
-
-        $item->beforePublish();
-        $item->save();
-        $item->afterPublish();
-        $this->afterPublish($item);
-
-        $this->log->write($item->getId(), $this->class, $this->language->get($logMessage));
-
-        $this->redirect();
-    }
-
-    /**
-     * @param string $id
-     *
-     * @deprecated is this still used
-     * @todo       is this still used
-     */
-    protected function setUnDeletable(string $id): void
-    {
-        $this->unDeletable[] = $id;
-    }
-
-    public function saveorderAction(): void
-    {
-        $ordering = (array)json_decode($this->request->get('ordering'));
-        $this->recursiveSaveOrder($ordering[0], $this->class);
-
-        $this->flash->setSucces('ADMIN_ORDERING_SAVED');
-
-        $this->redirect($this->link.'/adminList');
-    }
-
-    /**
-     * @param array $ordering
-     * @param string $object
-     * @param string|null $parentId
-     */
-    protected function recursiveSaveOrder(
-        array $ordering,
-        string $object,
-        string $parentId = null
-    ): void {
-        $orderNumber = 0;
-        foreach ($ordering as $order) :
-            if (isset($order->id)) :
-                $hasChildren = false;
-                if (
-                    isset($order->children)
-                    && \count($order->children[0]) > 0
-                ) :
-                    $hasChildren = true;
-                endif;
-
-                /** @var AbstractCollection $object */
-                $object::setFindPublished(false);
-                $item = $object::findById($order->id);
-                $item->set('parentId', $parentId);
-                $item->set('hasChildren', $hasChildren);
-                $item->set('ordering', $orderNumber++);
-                $item->save();
-
-                if ($hasChildren) :
-                    $this->recursiveSaveOrder($order->children[0], $object, $order->id);
-                endif;
-            endif;
-        endforeach;
     }
 
     /**\
@@ -615,7 +467,6 @@ abstract class AbstractAdminController extends AbstractController
         return $item;
     }
 
-
     /**
      * @param AbstractCollection $item
      *
@@ -628,7 +479,7 @@ abstract class AbstractAdminController extends AbstractController
             foreach ($this->request->getUploadedFiles() as $file) :
                 if (!empty($file->getName())) :
                     $name = FileUtil::sanatize($file->getName());
-                    if ($file->moveTo($this->config->get('uploadDir').$name)) :
+                    if ($file->moveTo($this->config->get('uploadDir') . $name)) :
                         $key = $file->getKey();
                         if (substr_count($key, '.') > 0) :
                             $tmp = explode('.', $key);
@@ -650,66 +501,6 @@ abstract class AbstractAdminController extends AbstractController
         return $item;
     }
 
-    protected function applyFilter(AbstractCollection $item): void
-    {
-        $filter = [];
-
-        if (
-            \is_array($this->request->get('filter'))
-            && !empty($this->request->get('filter'))
-        ):
-            $resetSortable = false;
-            foreach ($this->request->get('filter') as $filterName => $filterValue) :
-                if (!empty($filterValue)) :
-                    $filter[$filterName] = trim($filterValue);
-                    $resetSortable = true;
-                endif;
-            endforeach;
-            $this->session->set('filter_'.$this->class, $filter);
-            if ($resetSortable) :
-                $this->listSortable = false;
-                $this->listNestable = false;
-            endif;
-        elseif (
-            \is_array($this->session->get('filter_'.$this->class))
-            && !empty($this->session->get('filter_'.$this->class))
-        ) :
-            $_REQUEST['filter'] = $filter = $this->session->get('filter_'.$this->class);
-            $this->listSortable = false;
-            $this->listNestable = false;
-        else :
-            $item::setFindValue('parentId', ['$in' => ['', null]]);
-        endif;
-
-        if (\count($filter) > 1 && isset($filter['datagroup'])) :
-            $datagroup = Datagroup::findById($this->request->get('filter')['datagroup']);
-            if ($datagroup->_('itemOrdering')) :
-                $this->listOrder = $datagroup->_('itemOrdering');
-            endif;
-
-            if ($datagroup->_('sortable')) :
-                $this->listSortable = true;
-                $this->listNestable = true;
-            endif;
-
-            $datagroups = [];
-            $datagroupChildren = DatagroupHelper::getChildrenFromRoot($datagroup);
-            foreach ($datagroupChildren as $datagroupChild) :
-                $datagroups[] = (string)$datagroupChild->getId();
-            endforeach;
-            $item::setFindValue('datagroup', ['$in' => $datagroups]);
-        endif;
-    }
-
-    /**
-     * @param AbstractCollection $item
-     *
-     * @deprecated split the functionalitie between beforeModelSave and beforePostBinding
-     */
-    public function beforeSave(AbstractCollection $item)
-    {
-    }
-
     /**
      * @param AbstractCollection $item
      */
@@ -720,19 +511,200 @@ abstract class AbstractAdminController extends AbstractController
     /**
      * @param AbstractCollection $item
      */
-    public function beforePostBinding(AbstractCollection $item): void
-    {
-    }
-
-    /**
-     * @param AbstractCollection $item
-     */
     public function afterSave(AbstractCollection $item): void
     {
     }
 
+    public function editAction(
+        string $itemId = null,
+        string $template = 'editForm',
+        string $templatePath = 'form/src/Resources/views/admin/',
+        AbstractForm $form = null
+    ): void
+    {
+        $adminEditForm = '';
+        /** @var AbstractCollection $item */
+        $item = new $this->class();
+        if ($itemId !== null) :
+            $this->class::setFindPublished(false);
+            $this->class::setRenderFields(false);
+            $item = $this->class::findById($itemId);
+        endif;
+
+        $this->eventsManager->fire(get_class($this) . ':beforeEdit', $this, $item);
+
+        $form = $this->getItemForm($form, $item);
+        if ($form !== null) :
+            $adminEditForm = $form->renderForm(
+                'admin/' . $this->router->getModuleName() . '/' . $this->router->getControllerName() . '/save/' . $itemId
+            );
+        endif;
+
+        $adminButtons = $this->view->renderModuleTemplate(
+            $this->router->getModuleName(),
+            str_replace('admin', '', $this->router->getControllerName()) . 'Buttons',
+            '/admin/edit/',
+            ['editId' => $item->getId()]
+        );
+
+        $this->view->setVar('content', $this->view->renderTemplate(
+            $template,
+            $this->configuration->getVendorNameDir() . $templatePath,
+            array_merge([
+                'adminEditItem' => $item,
+                'adminButtons' => $adminButtons,
+                'adminEditForm' => $adminEditForm,
+            ], $this->renderParams)
+        ));
+        $this->prepareView();
+    }
+
+    public function deleteAction(): void
+    {
+        /** @var AbstractCollection $item */
+        $item = new $this->class();
+        $item::setFindPublished(false);
+        $item::setRenderFields(false);
+        $item = $item::findById($this->dispatcher->getParam(0));
+        if ($item) :
+            $item->beforeDelete();
+            $item->delete();
+            $item->afterDelete();
+
+            if ($this->class !== Log::class) :
+                $this->log->write(
+                    $item->getId(),
+                    $this->class,
+                    $this->language->get('ADMIN_ITEM_DELETED', [$item->_('name')])
+                );
+            endif;
+
+            $this->flash->setSucces('ADMIN_ITEM_DELETED', [$item->_('name')]);
+
+            if ($item->hasParent()) :
+                $this->class::setFindValue('parentId', $item->getParentId());
+                $count = $this->class::count();
+                if ($count === 0) :
+                    $parent = $this->class::findById($item->getParentId());
+                    $parent->hasChildren = false;
+                    $parent->save();
+                endif;
+            endif;
+        else :
+            $this->flash->setError('ADMIN_ITEM_NOT_FOUND');
+        endif;
+
+        $this->redirect($this->link . '/adminList');
+    }
+
+    public function copyAction(): void
+    {
+        if ($this->dispatcher->getParam(0)) :
+            $this->class::setFindPublished(false);
+            $item = $this->class::findById($this->dispatcher->getParam(0));
+            $item->setId(new ObjectId());
+            $item->set('createdAt', date('Y-m-d H:i:s'));
+            $item->set('published', false);
+
+            $parsedLanguage = [];
+            foreach (Language::findAll() as $language) :
+                if (!\in_array($language->_('short'), $parsedLanguage, true)) :
+                    $item->set(
+                        'name',
+                        $item->_('name', $language->_('short')) . ' - copy',
+                        true,
+                        $language->_('short')
+                    );
+                    $parsedLanguage[] = $language->_('short');
+                endif;
+            endforeach;
+
+            $item->save();
+        endif;
+
+        $this->redirect($this->link . '/adminList');
+    }
+
+    public function togglePublishAction(): void
+    {
+        $logMessage = 'ADMIN_ITEM_PUBLISHED';
+
+        /** @var AbstractCollection $item */
+        $item = new $this->class();
+        $item::setFindPublished(false);
+        if (\is_callable([$item, 'setRenderFields'])) :
+            $item::setRenderFields(false);
+        endif;
+        $item = $item::findById($this->dispatcher->getParam(0));
+
+        if ($item->_('published') === true) :
+            $item->set('published', false);
+            $logMessage = 'ADMIN_ITEM_UNPUBLISHED';
+            $this->flash->setSucces('ADMIN_ITEM_UNPUBLISHED');
+        else :
+            $item->set('published', true);
+            $this->flash->setSucces('ADMIN_ITEM_PUBLISHED');
+        endif;
+
+        $item->beforePublish();
+        $item->save();
+        $item->afterPublish();
+        $this->afterPublish($item);
+
+        $this->log->write($item->getId(), $this->class, $this->language->get($logMessage));
+
+        $this->redirect();
+    }
+
     public function afterPublish(BaseCollectionInterface $item): void
     {
+    }
+
+    public function saveorderAction(): void
+    {
+        $ordering = (array)json_decode($this->request->get('ordering'));
+        $this->recursiveSaveOrder($ordering[0], $this->class);
+
+        $this->flash->setSucces('ADMIN_ORDERING_SAVED');
+
+        $this->redirect($this->link . '/adminList');
+    }
+
+    /**
+     * @param array $ordering
+     * @param string $object
+     * @param string|null $parentId
+     */
+    protected function recursiveSaveOrder(
+        array $ordering,
+        string $object,
+        string $parentId = null
+    ): void
+    {
+        $orderNumber = 0;
+        foreach ($ordering as $order) :
+            if (isset($order->id)) :
+                $hasChildren = false;
+                if (
+                    isset($order->children)
+                    && \count($order->children[0]) > 0
+                ) :
+                    $hasChildren = true;
+                endif;
+
+                /** @var AbstractCollection $object */
+                $object::setFindPublished(false);
+                $item = $object::findById($order->id);
+                $item->set('parentId', $parentId);
+                $item->set('hasChildren', $hasChildren);
+                $item->set('ordering', $orderNumber++);
+                $item->save();
+
+                if ($hasChildren) :
+                    $this->recursiveSaveOrder($order->children[0], $object, $order->id);
+                endif;
+            endif;
+        endforeach;
     }
 
     public function addRenderParam(string $key, $value): void
@@ -743,5 +715,33 @@ abstract class AbstractAdminController extends AbstractController
     public function isListSortable(): bool
     {
         return $this->listSortable;
+    }
+
+    public function getLink(): string
+    {
+        return $this->link;
+    }
+
+    /**
+     * @param AbstractCollection $item
+     *
+     * @return string
+     *
+     * @deprecated wordt deze nog gebruikt? Anders mag hij weg
+     */
+    protected function getAdminlistName(AbstractCollection $item): string
+    {
+        return $item->getAdminlistName();
+    }
+
+    /**
+     * @param string $id
+     *
+     * @deprecated is this still used
+     * @todo       is this still used
+     */
+    protected function setUnDeletable(string $id): void
+    {
+        $this->unDeletable[] = $id;
     }
 }

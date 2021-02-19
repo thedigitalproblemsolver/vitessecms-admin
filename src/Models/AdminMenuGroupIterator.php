@@ -20,15 +20,15 @@ class AdminMenuGroupIterator extends \ArrayIterator
         return $this;
     }
 
-    public function current(): AdminMenuGroup
-    {
-        return parent::current();
-    }
-
     public function getByKey(string $key): AdminMenuGroup
     {
         $this->seek($this->index[$key]);
 
         return $this->current();
+    }
+
+    public function current(): AdminMenuGroup
+    {
+        return parent::current();
     }
 }
