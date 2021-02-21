@@ -335,6 +335,7 @@ abstract class AbstractAdminController extends AbstractController
             /** move all Model::beforeModelSave to listeners */
             $this->beforeModelSave($item);
             $this->eventsManager->fire($this->controllerName . ':beforeModelSave', $this, $item);
+            $this->eventsManager->fire(get_class($this) . ':beforeModelSave', $this, $item);
 
             $item->save();
 
