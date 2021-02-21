@@ -320,6 +320,7 @@ abstract class AbstractAdminController extends AbstractController
         //TODO kunnen dit soort zaken in event listners?
         $this->beforeSave($item);
         $this->eventsManager->fire($this->controllerName . ':beforeSave', $this, $item);
+        $this->eventsManager->fire(get_class($this) . ':beforePostBinding', $this, $item);
         $this->beforePostBinding($item);
 
         if ($form === null) :
