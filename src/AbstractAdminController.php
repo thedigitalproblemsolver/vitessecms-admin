@@ -317,11 +317,7 @@ abstract class AbstractAdminController extends AbstractController
             endif;
         endif;
 
-        //TODO kunnen dit soort zaken in event listners?
-        $this->beforeSave($item);
-        $this->eventsManager->fire($this->controllerName . ':beforeSave', $this, $item);
-        $this->beforePostBinding($item);
-
+        $this->eventsManager->fire(get_class($this) . ':beforePostBinding', $this, $item);
         if ($form === null) :
             $form = $this->getItemForm($form, $item);
         endif;
@@ -330,11 +326,7 @@ abstract class AbstractAdminController extends AbstractController
         if ($form->validate($this)) :
             $item = $this->parseFormElement($form, $item);
             $item = $this->parseSubmittedFiles($item);
-
-            /** move all Model::beforeModelSave to listeners */
-            $this->beforeModelSave($item);
-            $this->eventsManager->fire($this->controllerName . ':beforeModelSave', $this, $item);
-
+            $this->eventsManager->fire(get_class($this) . ':beforeModelSave', $this, $item);
             $item->save();
 
             if ($item->_('parentId')) :
@@ -355,22 +347,6 @@ abstract class AbstractAdminController extends AbstractController
         endif;
 
         $this->redirect($this->link . '/edit/' . $item->getId(), [], false);
-    }
-
-    /**
-     * @param AbstractCollection $item
-     *
-     * @deprecated split the functionalitie between beforeModelSave and beforePostBinding
-     */
-    public function beforeSave(AbstractCollection $item)
-    {
-    }
-
-    /**
-     * @param AbstractCollection $item
-     */
-    public function beforePostBinding(AbstractCollection $item): void
-    {
     }
 
     protected function getItemForm(?AbstractForm $form, AbstractCollection $item): ?AbstractForm
@@ -656,6 +632,7 @@ abstract class AbstractAdminController extends AbstractController
         $this->redirect();
     }
 
+    //TODO move to listener
     public function afterPublish(BaseCollectionInterface $item): void
     {
     }
