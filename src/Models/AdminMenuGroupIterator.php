@@ -2,7 +2,9 @@
 
 namespace VitesseCms\Admin\Models;
 
-class AdminMenuGroupIterator extends \ArrayIterator
+use ArrayIterator;
+
+class AdminMenuGroupIterator extends ArrayIterator
 {
     protected $index;
 
