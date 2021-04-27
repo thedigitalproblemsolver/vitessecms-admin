@@ -2,6 +2,9 @@
 
 namespace VitesseCms\Admin;
 
+use Phalcon\Exception;
+use ReflectionClass;
+use stdClass;
 use VitesseCms\Admin\Utils\AdminListUtil;
 use VitesseCms\Content\Models\Item;
 use VitesseCms\Core\AbstractController;
@@ -25,6 +28,11 @@ use Phalcon\Forms\Element\Numeric;
 use Phalcon\Forms\Element\Select;
 use Phalcon\Forms\Element\Text;
 use Phalcon\Http\Request;
+use function count;
+use function get_class;
+use function in_array;
+use function is_array;
+use function is_callable;
 
 abstract class AbstractAdminController extends AbstractController
 {
@@ -107,7 +115,7 @@ abstract class AbstractAdminController extends AbstractController
         $this->listNestable = false;
         $this->listTemplate = 'adminList';
         $this->listTemplatePath = $this->configuration->getVendorNameDir() . 'admin/src/Resources/views/';
-        $this->controllerName = (new \ReflectionClass($this))->getShortName();
+        $this->controllerName = (new ReflectionClass($this))->getShortName();
         $this->renderParams = [];
         $this->displayEditButton = true;
     }
@@ -143,7 +151,7 @@ abstract class AbstractAdminController extends AbstractController
         $this->prepareView();
     }
 
-    protected function recursiveAdminList(\stdClass $pagination, int $level = 0): string
+    protected function recursiveAdminList(stdClass $pagination, int $level = 0): string
     {
         $params = [
             'id' => false,
@@ -224,7 +232,7 @@ abstract class AbstractAdminController extends AbstractController
         return $return;
     }
 
-    protected function getAdminListPagination(?string $parentId = null): \stdClass
+    protected function getAdminListPagination(?string $parentId = null): stdClass
     {
         /** @var AbstractCollection $item */
         $item = new $this->class();
@@ -241,7 +249,7 @@ abstract class AbstractAdminController extends AbstractController
         endif;
         $items = $item::findAll();
 
-        if (\count($items) === 0) :
+        if (count($items) === 0) :
             $this->flash->setError('ADMIN_NO_ITEMS_FOUND');
         endif;
 
@@ -258,7 +266,7 @@ abstract class AbstractAdminController extends AbstractController
         $filter = [];
 
         if (
-            \is_array($this->request->get('filter'))
+            is_array($this->request->get('filter'))
             && !empty($this->request->get('filter'))
         ):
             $resetSortable = false;
@@ -274,7 +282,7 @@ abstract class AbstractAdminController extends AbstractController
                 $this->listNestable = false;
             endif;
         elseif (
-            \is_array($this->session->get('filter_' . $this->class))
+            is_array($this->session->get('filter_' . $this->class))
             && !empty($this->session->get('filter_' . $this->class))
         ) :
             $_REQUEST['filter'] = $filter = $this->session->get('filter_' . $this->class);
@@ -284,7 +292,7 @@ abstract class AbstractAdminController extends AbstractController
             $item::setFindValue('parentId', ['$in' => ['', null]]);
         endif;
 
-        if (\count($filter) > 1 && isset($filter['datagroup'])) :
+        if (count($filter) > 1 && isset($filter['datagroup'])) :
             $datagroup = Datagroup::findById($this->request->get('filter')['datagroup']);
             if ($datagroup->_('itemOrdering')) :
                 $this->listOrder = $datagroup->_('itemOrdering');
@@ -341,7 +349,7 @@ abstract class AbstractAdminController extends AbstractController
             $this->afterSave($item);
             $this->cache->flush();
 
-            $this->log->write($item->getId(), \get_class($item), 'Item saved');
+            $this->log->write($item->getId(), get_class($item), 'Item saved');
 
             $this->flash->setSucces('ADMIN_ITEM_SAVED');
         endif;
@@ -378,14 +386,14 @@ abstract class AbstractAdminController extends AbstractController
     protected function parseFormElement(AbstractForm $form, AbstractCollection $item): AbstractCollection
     {
         foreach ($form->getElements() as $element) :
-            switch (\get_class($element)) :
+            switch (get_class($element)) :
                 case Check::class:
                     if ($this->request->getPost($element->getName()) === null) :
                         $item->set($element->getName(), null);
                     endif;
                     break;
                 case Numeric::class:
-                    if (\is_array($element->getValue())) :
+                    if (is_array($element->getValue())) :
                         $values = (array)$element->getValue();
                         foreach ($values as $key => $value) :
                             $values[$key] = (float)$value;
@@ -447,7 +455,7 @@ abstract class AbstractAdminController extends AbstractController
      * @param AbstractCollection $item
      *
      * @return AbstractCollection
-     * @throws \Phalcon\Exception
+     * @throws Exception
      */
     protected function parseSubmittedFiles(AbstractCollection $item): AbstractCollection
     {
@@ -460,7 +468,7 @@ abstract class AbstractAdminController extends AbstractController
                         if (substr_count($key, '.') > 0) :
                             $tmp = explode('.', $key);
                             $valueName = $tmp[0];
-                            if (!\is_array($item->$valueName)) :
+                            if (!is_array($item->$valueName)) :
                                 $item->$valueName = [];
                             endif;
                             $item->$valueName[$tmp[1]] = $name;
@@ -584,7 +592,7 @@ abstract class AbstractAdminController extends AbstractController
 
             $parsedLanguage = [];
             foreach (Language::findAll() as $language) :
-                if (!\in_array($language->_('short'), $parsedLanguage, true)) :
+                if (!in_array($language->_('short'), $parsedLanguage, true)) :
                     $item->set(
                         'name',
                         $item->_('name', $language->_('short')) . ' - copy',
@@ -608,7 +616,7 @@ abstract class AbstractAdminController extends AbstractController
         /** @var AbstractCollection $item */
         $item = new $this->class();
         $item::setFindPublished(false);
-        if (\is_callable([$item, 'setRenderFields'])) :
+        if (is_callable([$item, 'setRenderFields'])) :
             $item::setRenderFields(false);
         endif;
         $item = $item::findById($this->dispatcher->getParam(0));
@@ -664,7 +672,7 @@ abstract class AbstractAdminController extends AbstractController
                 $hasChildren = false;
                 if (
                     isset($order->children)
-                    && \count($order->children[0]) > 0
+                    && count($order->children[0]) > 0
                 ) :
                     $hasChildren = true;
                 endif;

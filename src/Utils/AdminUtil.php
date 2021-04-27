@@ -13,7 +13,7 @@ use VitesseCms\Setting\Services\SettingService;
 use VitesseCms\User\Models\User;
 use VitesseCms\User\Utils\PermissionUtils;
 use Phalcon\Events\Manager;
-use \count;
+use count;
 
 class AdminUtil
 {
@@ -59,7 +59,7 @@ class AdminUtil
 
     public static function isAdminPage(): bool
     {
-        return !(substr_count($_SERVER['REQUEST_URI'], 'admin/') === 0);
+        return !(substr_count($_SERVER['REQUEST_URI']??'', 'admin/') === 0);
     }
 
     public function toolbar(): string
