@@ -42,11 +42,6 @@ abstract class AbstractAdminController extends AbstractController
     protected $link;
 
     /**
-     * @var array
-     */
-    protected $unDeletable;
-
-    /**
      * @var AbstractCollection
      */
     protected $class;
@@ -106,7 +101,6 @@ abstract class AbstractAdminController extends AbstractController
         parent::onConstruct();
 
         $this->link = $this->url->getBaseUri() . 'admin/' . $this->router->getModuleName() . '/' . $this->router->getControllerName();
-        $this->unDeletable = [];
         $this->class = null;
         $this->classForm = null;
         $this->listOrder = 'name';
@@ -712,16 +706,5 @@ abstract class AbstractAdminController extends AbstractController
     protected function getAdminlistName(AbstractCollection $item): string
     {
         return $item->getAdminlistName();
-    }
-
-    /**
-     * @param string $id
-     *
-     * @deprecated is this still used
-     * @todo       is this still used
-     */
-    protected function setUnDeletable(string $id): void
-    {
-        $this->unDeletable[] = $id;
     }
 }
