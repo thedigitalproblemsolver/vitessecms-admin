@@ -14,8 +14,7 @@ class AdminListUtil
     public static function getAdminListButtons(
         AbstractCollection $item,
         string $editBaseUri,
-        AclService $acl,
-        array $unDeletable = []
+        AclService $acl
     ): string
     {
         $return = '';
@@ -75,10 +74,7 @@ class AdminListUtil
             ]);
         endif;
 
-        if (
-            $acl->hasAccess('delete')
-            && !in_array($item->getId(), $unDeletable, true)
-        ) :
+        if ($acl->hasAccess('delete')) :
             $return .= Tag::linkTo([
                 'action' => $editBaseUri . '/delete/' . $item->getId(),
                 'class' => 'fa fa-trash',
