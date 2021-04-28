@@ -633,16 +633,11 @@ abstract class AbstractAdminController extends AbstractController
         $item->beforePublish();
         $item->save();
         $item->afterPublish();
-        $this->afterPublish($item);
+        $this->eventsManager->fire(get_class($this) . ':afterPublish', $this, $item);
 
         $this->log->write($item->getId(), $this->class, $this->language->get($logMessage));
 
         $this->redirect();
-    }
-
-    //TODO move to listener
-    public function afterPublish(BaseCollectionInterface $item): void
-    {
     }
 
     public function saveorderAction(): void
