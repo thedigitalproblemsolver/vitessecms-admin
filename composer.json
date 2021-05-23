@@ -20,9 +20,9 @@
   "require": {
     "vitessecms/configuration": "~0.2.0",
     "vitessecms/language": "~0.2.1",
-    "vitessecms/setting": "~0.2.0",
+    "vitessecms/setting": "~0.2.1",
     "vitessecms/user": "~0.2.2",
-    "vitessecms/core": "~0.2.2",
+    "vitessecms/core": "~0.2.5",
     "vitessecms/form": "~0.2.2",
     "vitessecms/datagroup": "~0.2.3"
   }
