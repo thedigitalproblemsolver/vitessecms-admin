@@ -24,6 +24,6 @@
     "vitessecms/user": "~0.1.0",
     "vitessecms/core": "~0.1.7",
     "vitessecms/form": "~0.1.1",
-    "vitessecms/datagroup": "~0.1.2"
+    "vitessecms/datagroup": "~0.2.0"
   }
 }
