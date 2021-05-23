@@ -328,6 +328,7 @@ abstract class AbstractAdminController extends AbstractController
         if ($form->validate($this)) :
             $item = $this->parseFormElement($form, $item);
             $item = $this->parseSubmittedFiles($item);
+            //TODO move to native collection beforeSave event?
             $this->eventsManager->fire(get_class($this) . ':beforeModelSave', $this, $item);
             $item->save();
 
@@ -340,6 +341,7 @@ abstract class AbstractAdminController extends AbstractController
                 endif;
             endif;
 
+            //TODO move to native collection afterSave event?
             $this->afterSave($item);
             $this->cache->flush();
 
