@@ -5,9 +5,9 @@ namespace VitesseCms\Admin\Utils;
 use VitesseCms\Admin\Models\AdminMenu;
 use VitesseCms\Admin\Models\AdminMenuGroup;
 use VitesseCms\Admin\Models\AdminMenuGroupIterator;
-use VitesseCms\Admin\Repositories\DatagroupRepository;
 use VitesseCms\Core\Enum\SystemEnum;
 use VitesseCms\Core\Forms\AdminToolbarForm;
+use VitesseCms\Datagroup\Repositories\DatagroupRepository;
 use VitesseCms\User\Models\User;
 use VitesseCms\User\Utils\PermissionUtils;
 use Phalcon\Events\Manager;
@@ -33,8 +33,7 @@ class AdminUtil
         User $user,
         Manager $eventsManager,
         DatagroupRepository $datagroupRepository
-    )
-    {
+    ) {
         $this->user = $user;
         $this->eventsManager = $eventsManager;
         $this->datagroupRepository = $datagroupRepository;
