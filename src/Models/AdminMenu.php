@@ -2,9 +2,6 @@
 
 namespace VitesseCms\Admin\Models;
 
-use VitesseCms\Setting\Services\SettingService;
-use VitesseCms\User\Models\User;
-
 class AdminMenu
 {
     /**
@@ -13,41 +10,19 @@ class AdminMenu
     protected $navbarItems;
 
     /**
-     * @var SettingService
-     */
-    protected $setting;
-
-    /**
      * @var AdminMenuGroupIterator
      */
     protected $groups;
 
-    /**
-     * @var User
-     */
-    protected $user;
-
-    public function __construct(
-        array $navbarItems,
-        AdminMenuGroupIterator $groups,
-        SettingService $setting,
-        User $user
-    )
+    public function __construct( array $navbarItems, AdminMenuGroupIterator $groups)
     {
         $this->navbarItems = $navbarItems;
-        $this->setting = $setting;
         $this->groups = $groups;
-        $this->user = $user;
     }
 
     public function getNavbarItems(): array
     {
         return $this->navbarItems;
-    }
-
-    public function getSetting(): SettingService
-    {
-        return $this->setting;
     }
 
     public function addDropdown(string $name, AdminMenuNavBarChildren $children): AdminMenu
@@ -63,7 +38,6 @@ class AdminMenu
         else :
             $this->navbarItems[$name]['children'] += $children->getItems();
             ksort($this->navbarItems[$name]['children']);
-            $this->navbarItems[$name]['children'];
         endif;
 
         return $this;
@@ -72,10 +46,5 @@ class AdminMenu
     public function getGroups(): AdminMenuGroupIterator
     {
         return $this->groups;
-    }
-
-    public function getUser(): User
-    {
-        return $this->user;
     }
 }

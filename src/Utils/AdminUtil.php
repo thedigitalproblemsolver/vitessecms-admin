@@ -6,22 +6,14 @@ use VitesseCms\Admin\Models\AdminMenu;
 use VitesseCms\Admin\Models\AdminMenuGroup;
 use VitesseCms\Admin\Models\AdminMenuGroupIterator;
 use VitesseCms\Admin\Repositories\DatagroupRepository;
-use VitesseCms\Core\Services\ViewService;
 use VitesseCms\Core\Enum\SystemEnum;
 use VitesseCms\Core\Forms\AdminToolbarForm;
-use VitesseCms\Setting\Services\SettingService;
 use VitesseCms\User\Models\User;
 use VitesseCms\User\Utils\PermissionUtils;
 use Phalcon\Events\Manager;
-use count;
 
 class AdminUtil
 {
-    /**
-     * @var SettingService
-     */
-    protected $setting;
-
     /**
      * @var User
      */
@@ -33,27 +25,18 @@ class AdminUtil
     protected $eventsManager;
 
     /**
-     * @var ViewService
-     */
-    protected $view;
-
-    /**
      * @var DatagroupRepository
      */
     protected $datagroupRepository;
 
     public function __construct(
-        SettingService $setting,
         User $user,
         Manager $eventsManager,
-        ViewService $view,
         DatagroupRepository $datagroupRepository
     )
     {
-        $this->setting = $setting;
         $this->user = $user;
         $this->eventsManager = $eventsManager;
-        $this->view = $view;
         $this->datagroupRepository = $datagroupRepository;
     }
 
@@ -62,7 +45,7 @@ class AdminUtil
         return !(substr_count($_SERVER['REQUEST_URI']??'', 'admin/') === 0);
     }
 
-    public function toolbar(): string
+    public function getToolbar(): array
     {
         $adminGroupIterator = new AdminMenuGroupIterator();
         foreach (SystemEnum::COMPONENTS as $key => $label) :
@@ -73,25 +56,19 @@ class AdminUtil
             ));
         endforeach;
 
-        $adminMenu = new AdminMenu([], $adminGroupIterator, $this->setting, $this->user);
+        $adminMenu = new AdminMenu([], $adminGroupIterator);
         $this->eventsManager->fire('adminMenu:AddChildren', $adminMenu);
         $adminForm = new AdminToolbarForm();
         $adminForm->setFormClass('form-inline my-2 my-lg-0');
 
-        $navbar = [
+        return [
             'navClass' => 'admin-toolbar fixed-top navbar-dark',
             'items' => $this->toolbarAclCheck($adminMenu->getNavbarItems()),
             'form' => $adminForm->renderForm(
                 'admin/core/adminindex/toggleParameters',
                 'adminToolbarForm'
-            ),
+            )
         ];
-
-        return $this->view->renderTemplate(
-            'navbar',
-            'partials',
-            ['navbar' => $navbar]
-        );
     }
 
     protected function toolbarAclCheck(array $navbarItems): array

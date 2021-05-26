@@ -13,14 +13,10 @@ use VitesseCms\Admin\Forms\AdminlistForm;
 use VitesseCms\Datagroup\Helpers\DatagroupHelper;
 use VitesseCms\Core\Helpers\ItemHelper;
 use VitesseCms\Datagroup\Models\Datagroup;
-use VitesseCms\Core\Models\Elasticsearch;
-use VitesseCms\Core\Models\Log;
 use VitesseCms\Core\Utils\FileUtil;
 use VitesseCms\Database\AbstractCollection;
-use VitesseCms\Database\Interfaces\BaseCollectionInterface;
 use VitesseCms\Form\AbstractForm;
 use VitesseCms\Form\Helpers\ElementHelper;
-use VitesseCms\Language\Helpers\LanguageHelper;
 use VitesseCms\Language\Models\Language;
 use MongoDB\BSON\ObjectId;
 use Phalcon\Forms\Element\Check;
@@ -28,11 +24,6 @@ use Phalcon\Forms\Element\Numeric;
 use Phalcon\Forms\Element\Select;
 use Phalcon\Forms\Element\Text;
 use Phalcon\Http\Request;
-use function count;
-use function get_class;
-use function in_array;
-use function is_array;
-use function is_callable;
 
 abstract class AbstractAdminController extends AbstractController
 {
