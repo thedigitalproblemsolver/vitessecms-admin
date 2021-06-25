@@ -538,9 +538,11 @@ abstract class AbstractAdminController extends AbstractController
         $item::setRenderFields(false);
         $item = $item::findById($this->dispatcher->getParam(0));
         if ($item) :
+            $this->eventsManager->fire(get_class($item) . ':beforeDelete', $item);
             $item->beforeDelete();
             $item->delete();
             $item->afterDelete();
+            $this->eventsManager->fire(get_class($item) . ':afterDelete', $item);
 
             if ($this->class !== Log::class) :
                 $this->log->write(
