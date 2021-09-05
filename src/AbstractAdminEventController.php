@@ -3,9 +3,9 @@
 namespace VitesseCms\Admin;
 
 use VitesseCms\Admin\Traits\TraitAdminControllerFunctions;
-use VitesseCms\Core\AbstractController;
+use VitesseCms\Core\AbstractEventController;
 
-abstract class AbstractAdminController extends AbstractController
+abstract class AbstractAdminEventController extends AbstractEventController
 {
     use TraitAdminControllerFunctions;
 }
