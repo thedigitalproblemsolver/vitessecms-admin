@@ -557,8 +557,10 @@ trait TraitAdminControllerFunctions
                 $count = $this->class::count();
                 if ($count === 0) :
                     $parent = $this->class::findById($item->getParentId());
-                    $parent->hasChildren = false;
-                    $parent->save();
+                    if($parent) :
+                        $parent->hasChildren = false;
+                        $parent->save();
+                    endif;
                 endif;
             endif;
         else :
