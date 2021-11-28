@@ -22,6 +22,8 @@ use VitesseCms\Form\AbstractForm;
 use VitesseCms\Form\Helpers\ElementHelper;
 use VitesseCms\Language\Models\Language;
 use \stdClass;
+use VitesseCms\Mustache\Enum\ViewEnum;
+use VitesseCms\Mustache\DTO\RenderTemplateDTO;
 
 trait TraitAdminControllerFunctions
 {
@@ -105,11 +107,10 @@ trait TraitAdminControllerFunctions
 
     public function adminListAction(): void
     {
-        $adminListButtons = $this->view->renderModuleTemplate(
-            $this->router->getModuleName(),
+        $adminListButtons = $this->eventsManager->fire(ViewEnum::RENDER_TEMPLATE_EVENT, new RenderTemplateDTO(
             str_replace('admin', '', $this->router->getControllerName()) . 'Buttons',
-            'admin/list/'
-        );
+            $this->router->getModuleName() . '/src/Resources/views/admin/list/'
+        ));
 
         $this->view->set(
             'content',
@@ -487,7 +488,7 @@ trait TraitAdminControllerFunctions
     public function editAction(
         string       $itemId = null,
         string       $template = 'editForm',
-        string       $templatePath = 'form/src/Resources/views/admin/',
+        string       $formTemplatePath = 'form/src/Resources/views/admin/',
         AbstractForm $form = null
     ): void
     {
@@ -509,22 +510,22 @@ trait TraitAdminControllerFunctions
             );
         endif;
 
-        $adminButtons = $this->view->renderModuleTemplate(
-            $this->router->getModuleName(),
+        $adminButtons = $this->eventsManager->fire(ViewEnum::RENDER_TEMPLATE_EVENT,new RenderTemplateDTO(
             str_replace('admin', '', $this->router->getControllerName()) . 'Buttons',
-            '/admin/edit/',
+            $this->router->getModuleName() . '/src/Resources/views/admin/edit/',
             ['editId' => $item->getId()]
-        );
+        ));
 
-        $this->view->setVar('content', $this->view->renderTemplate(
+        $this->view->setVar('content', $this->eventsManager->fire(ViewEnum::RENDER_TEMPLATE_EVENT,new RenderTemplateDTO(
             $template,
-            $this->configuration->getVendorNameDir() . $templatePath,
+            $formTemplatePath,
             array_merge([
                 'adminEditItem' => $item,
                 'adminButtons' => $adminButtons,
                 'adminEditForm' => $adminEditForm,
             ], $this->renderParams)
-        ));
+        )));
+
         $this->prepareView();
     }
 
