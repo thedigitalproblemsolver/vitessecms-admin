@@ -24,6 +24,6 @@
     "vitessecms/form": "~0.2.8",
     "vitessecms/datagroup": "~0.2.9",
     "vitessecms/mustache": "~0.2.4",
-    "vitessecms/media": "~0.2.9"
+    "vitessecms/media": "~0.2.11"
   }
 }
