@@ -20,10 +20,10 @@
   "require": {
     "vitessecms/language": "~0.2.4",
     "vitessecms/user": "~0.2.10",
-    "vitessecms/core": "~0.2.11",
+    "vitessecms/core": "~0.2.23",
     "vitessecms/form": "~0.2.8",
     "vitessecms/datagroup": "~0.2.9",
     "vitessecms/mustache": "~0.2.9",
-    "vitessecms/media": "~0.2.11"
+    "vitessecms/media": "~0.2.12"
   }
 }
