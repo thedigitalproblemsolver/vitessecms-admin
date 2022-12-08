@@ -9,6 +9,7 @@ use Phalcon\Forms\Element\Numeric;
 use Phalcon\Forms\Element\Select;
 use Phalcon\Forms\Element\Text;
 use Phalcon\Http\Request;
+use Phalcon\Incubator\MongoDB\Mvc\Collection;
 use VitesseCms\Admin\Forms\AdminlistForm;
 use VitesseCms\Admin\Utils\AdminListUtil;
 use VitesseCms\Content\Models\Item;
@@ -25,6 +26,7 @@ use VitesseCms\Language\Models\Language;
 use \stdClass;
 use VitesseCms\Mustache\Enum\ViewEnum;
 use VitesseCms\Mustache\DTO\RenderTemplateDTO;
+use const pcov\version;
 
 trait TraitAdminControllerFunctions
 {
@@ -572,30 +574,27 @@ trait TraitAdminControllerFunctions
         $this->redirect($this->link . '/adminList');
     }
 
-    public function copyAction(): void
+    public function copyAction(string $itemId): void
     {
-        if ($this->dispatcher->getParam(0)) :
-            $this->class::setFindPublished(false);
-            $item = $this->class::findById($this->dispatcher->getParam(0));
-            $item->setId(new ObjectId());
-            $item->set('createdAt', date('Y-m-d H:i:s'));
-            $item->set('published', false);
+        $this->class::setFindPublished(false);
+        $item = $this->class::findById($this->dispatcher->getParam(0));
+        $item->resetId();
+        $item->set('createdAt', date('Y-m-d H:i:s'));
+        $item->set('published', false);
 
-            $parsedLanguage = [];
-            foreach (Language::findAll() as $language) :
-                if (!in_array($language->_('short'), $parsedLanguage, true)) :
-                    $item->set(
-                        'name',
-                        $item->_('name', $language->_('short')) . ' - copy',
-                        true,
-                        $language->_('short')
-                    );
-                    $parsedLanguage[] = $language->_('short');
-                endif;
-            endforeach;
-
-            $item->save();
-        endif;
+        $parsedLanguage = [];
+        foreach (Language::findAll() as $language) :
+            if (!in_array($language->_('short'), $parsedLanguage, true)) :
+                $item->set(
+                    'name',
+                    $item->_('name', $language->_('short')) . ' - copy',
+                    true,
+                    $language->_('short')
+                );
+                $parsedLanguage[] = $language->_('short');
+            endif;
+        endforeach;
+        $item->save();
 
         $this->redirect($this->link . '/adminList');
     }
