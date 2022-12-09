@@ -1,6 +1,6 @@
 <li
-    id="{{item._id}}"
-    data-id="{{item._id}}"
+    id="{{item.getID}}"
+    data-id="{{item.getID}}"
     class="{{adminListRowClass}} list-group-item"
 >
     <div class="row">
@@ -12,7 +12,7 @@
                 {{#listSortable}}
                     <i class="fa fa-sort"></i>
                 {{/listSortable}}
-                <a href="{{editBaseUri}}/edit/{{item._id}}"
+                <a href="{{editBaseUri}}/edit/{{item.getID}}"
                     class="openmodal"
                 >
                     {{{adminListName}}}
