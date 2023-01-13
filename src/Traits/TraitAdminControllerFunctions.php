@@ -9,11 +9,13 @@ use Phalcon\Forms\Element\Numeric;
 use Phalcon\Forms\Element\Select;
 use Phalcon\Forms\Element\Text;
 use Phalcon\Http\Request;
+use Phalcon\Incubator\MongoDB\Mvc\Collection;
 use VitesseCms\Admin\Forms\AdminlistForm;
 use VitesseCms\Admin\Utils\AdminListUtil;
 use VitesseCms\Content\Models\Item;
-use VitesseCms\Core\Factories\PaginatonFactory;
+use VitesseCms\Core\Factories\PaginationFactory;
 use VitesseCms\Core\Helpers\ItemHelper;
+use VitesseCms\Core\Models\Pagination;
 use VitesseCms\Core\Utils\FileUtil;
 use VitesseCms\Database\AbstractCollection;
 use VitesseCms\Datagroup\Helpers\DatagroupHelper;
@@ -24,6 +26,7 @@ use VitesseCms\Language\Models\Language;
 use \stdClass;
 use VitesseCms\Mustache\Enum\ViewEnum;
 use VitesseCms\Mustache\DTO\RenderTemplateDTO;
+use const pcov\version;
 
 trait TraitAdminControllerFunctions
 {
@@ -135,7 +138,7 @@ trait TraitAdminControllerFunctions
         $this->prepareView();
     }
 
-    protected function recursiveAdminList(stdClass $pagination, int $level = 0): string
+    protected function recursiveAdminList(Pagination $pagination, int $level = 0): string
     {
         $params = [
             'id' => false,
@@ -159,7 +162,7 @@ trait TraitAdminControllerFunctions
         $return = $this->view->renderTemplate('recursiveAdminListStart', $templatePath, $params);
 
         /** @var AbstractCollection $item */
-        foreach ($pagination->items as $item) :
+        foreach ($pagination->getItems() as $item) :
             $this->eventsManager->fire($this->controllerName . ':adminListItem', $this, $item);
 
             $return .= $this->view->renderTemplate(
@@ -203,7 +206,7 @@ trait TraitAdminControllerFunctions
             $return .= $this->view->renderTemplate('recursiveAdminListItemEnd', $templatePath);
         endforeach;
 
-        if ($pagination->total_pages > 1) :
+        if ($pagination->getTotalPages() > 1) :
             $return .= $this->view->renderTemplate(
                 'recursiveAdminListPagination',
                 $templatePath,
@@ -216,7 +219,7 @@ trait TraitAdminControllerFunctions
         return $return;
     }
 
-    protected function getAdminListPagination(?string $parentId = null): stdClass
+    protected function getAdminListPagination(?string $parentId = null): Pagination
     {
         /** @var AbstractCollection $item */
         $item = new $this->class();
@@ -237,7 +240,7 @@ trait TraitAdminControllerFunctions
             $this->flash->setError('ADMIN_NO_ITEMS_FOUND');
         endif;
 
-        return PaginatonFactory::createFromArray(
+        return PaginationFactory::createFromArray(
             $items,
             $this->request,
             $this->url,
@@ -571,30 +574,27 @@ trait TraitAdminControllerFunctions
         $this->redirect($this->link . '/adminList');
     }
 
-    public function copyAction(): void
+    public function copyAction(string $itemId): void
     {
-        if ($this->dispatcher->getParam(0)) :
-            $this->class::setFindPublished(false);
-            $item = $this->class::findById($this->dispatcher->getParam(0));
-            $item->setId(new ObjectId());
-            $item->set('createdAt', date('Y-m-d H:i:s'));
-            $item->set('published', false);
+        $this->class::setFindPublished(false);
+        $item = $this->class::findById($this->dispatcher->getParam(0));
+        $item->resetId();
+        $item->set('createdAt', date('Y-m-d H:i:s'));
+        $item->set('published', false);
 
-            $parsedLanguage = [];
-            foreach (Language::findAll() as $language) :
-                if (!in_array($language->_('short'), $parsedLanguage, true)) :
-                    $item->set(
-                        'name',
-                        $item->_('name', $language->_('short')) . ' - copy',
-                        true,
-                        $language->_('short')
-                    );
-                    $parsedLanguage[] = $language->_('short');
-                endif;
-            endforeach;
-
-            $item->save();
-        endif;
+        $parsedLanguage = [];
+        foreach (Language::findAll() as $language) :
+            if (!in_array($language->_('short'), $parsedLanguage, true)) :
+                $item->set(
+                    'name',
+                    $item->_('name', $language->_('short')) . ' - copy',
+                    true,
+                    $language->_('short')
+                );
+                $parsedLanguage[] = $language->_('short');
+            endif;
+        endforeach;
+        $item->save();
 
         $this->redirect($this->link . '/adminList');
     }
