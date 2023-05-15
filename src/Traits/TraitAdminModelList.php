@@ -20,8 +20,9 @@ trait TraitAdminModelList
                 $listTemplatePath,
                 [
                     'models' => $this->getModelList(),
-                    'editBaseUri' => $link,
-                    'canDelete' => $aclService->hasAccess('delete')
+                    'actionBaseUri' => $link,
+                    'canDelete' => $aclService->hasAccess('delete') && $this->isDeletable(),
+                    'canEdit' => $aclService->hasAccess('edit') && $this->isEditable()
                     //'isAjax' => $this->request->isAjax(),
                     /*'filter' => $this->eventsManager->fire(
                         get_class($this) . ':adminListFilter',
