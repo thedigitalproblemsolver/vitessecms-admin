@@ -6,9 +6,11 @@ use VitesseCms\User\Enum\AclEnum;
 
 trait TraitAdminModelDeletable
 {
+    protected bool $isDeletable = true;
+
     public function deleteAction(string $id): void
     {
-        $model = $this->getDeletableModel($id);
+        $model = $this->getModel($id);
         if($model !== null) {
             $model->delete();
             $this->logService->write(
