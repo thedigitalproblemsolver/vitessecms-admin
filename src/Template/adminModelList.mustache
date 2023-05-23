@@ -1,0 +1,27 @@
+<ol class="list-group admin-list">
+{{#models}}
+    <li
+            id="{{getId}}"
+            class="list-group-item-success list-group-item"
+            data-id="{{getId}}"
+    >
+        {{getNameField}}
+        <div class="float-right">
+            {{#canPreview}}
+                {{#hasSlug}}
+                    <a href="{{baseUri}}{{getNameField}}" target="_blank" title="Preview" class="fa fa-eye"></a>
+                {{/hasSlug}}
+            {{/canPreview}}
+            {{#canReadonly}}
+                <a href="{{actionBaseUri}}/readonly/{{getId}}" target="_blank" title="%ADMIN_READONLY_ITEM%" class="fa fa-sticky-note-o openmodal"></a>
+            {{/canReadonly}}
+            {{#canEdit}}
+                <a href="{{actionBaseUri}}/edit/{{getId}}" target="_blank" title="%ADMIN_EDIT_ITEM%" class="fa fa-edit openmodal"></a>
+            {{/canEdit}}
+            {{#canDelete}}
+                <a id="delete_{{getId}}" href="{{actionBaseUri}}/delete/{{getId}}" target="_blank" title="%ADMIN_DELETE_ITEM%" class="fa fa-trash"></a>
+            {{/canDelete}}
+        </div>
+    </li>
+{{/models}}
+</ol>

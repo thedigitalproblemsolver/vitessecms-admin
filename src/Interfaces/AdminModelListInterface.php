@@ -2,7 +2,9 @@
 
 namespace VitesseCms\Admin\Interfaces;
 
+use VitesseCms\Database\Models\FindValueIterator;
+
 interface AdminModelListInterface {
-    public function getModelList(): \ArrayIterator;
+    public function getModelList( ?FindValueIterator $findValueIterator, int $limit = 25): \ArrayIterator;
     public function adminListAction(): void;
 }

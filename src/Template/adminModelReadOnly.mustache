@@ -1,0 +1,12 @@
+<h1>
+    {{model.getNameField}}
+    <small class="float-right text-muted">{{model.createdAt}}</small>
+</h1>
+<table class="table table-bordered">
+    {{#properties}}
+        <tr>
+            <th>{{key}}</th>
+            <td>{{{value}}}</td>
+        </tr>
+    {{/properties}}
+</table>
