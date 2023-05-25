@@ -27,15 +27,15 @@ class AdminlistForm extends AbstractForm implements AdminlistFormInterface
 
     public function addNameField(AbstractFormInterface $form): void
     {
-        $form->addText(
+        $this->addText(
             '%CORE_NAME%',
-            'filter[name.' . $form->configuration->getLanguageShort() . ']'
+            'filter[name.' . $this->configuration->getLanguageShort() . ']'
         );
     }
 
     public function addPublishedField(AbstractFormInterface $form): void
     {
-        $form->addDropdown(
+        $this->addDropdown(
             '%ADMIN_PUBLISHED_STATE%',
             'filter[published]',
             (new Attributes())->setOptions([
