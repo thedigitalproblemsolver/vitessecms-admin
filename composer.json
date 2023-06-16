@@ -20,11 +20,11 @@
   "require": {
     "vitessecms/language": "^1.0.0",
     "vitessecms/user": "^1.0.0",
-    "vitessecms/core": "^1.1.0",
+    "vitessecms/core": "^1.2.0",
     "vitessecms/form": "^1.0.0",
-    "vitessecms/datagroup": "^1.0.0",
-    "vitessecms/mustache": "^1.1.1",
-    "vitessecms/media": "^1.0.0",
+    "vitessecms/datagroup": "^1.1.0",
+    "vitessecms/mustache": "^1.2.0",
+    "vitessecms/media": "^1.1.0",
     "vitessecms/database": "^1.0.0"
   }
 }
