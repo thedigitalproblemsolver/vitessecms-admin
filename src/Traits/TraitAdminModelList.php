@@ -30,6 +30,7 @@ trait TraitAdminModelList
                     'canPreview' => $aclService->hasAccess('preview') && ($this->isPreviewable??false),
                     'canDelete' => $aclService->hasAccess('delete') && ($this->isDeletable??false),
                     'canEdit' => $aclService->hasAccess('edit') && ($this->isEditable??false),
+                    'canAdd' => $aclService->hasAccess('add') && ($this->isAddable??false),
                     'canReadonly'  => $aclService->hasAccess('readonly') && ($this->isReadOnly??false),
                     'filterForm' => $adminlistForm->renderForm($controllerUri.'/adminlist', 'adminFilter')
                 ]
