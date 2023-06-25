@@ -1,21 +1,18 @@
-<br />
-<br />
-<br />
-<br />
-<br />
 <div class="container">
     <div class="row">
         <div class="col-12 col-lg-9">
             <h1>Adminlist</h1>
         </div>
         <div class="col-12 col-lg-3">
-            {{#canAdd}}
-                <a
-                    class="btn btn-info fa fa-plus openmodal"
-                    href="{{actionBaseUri}}/add/"
-                    title="%ADMIN_NEW_ITEM%"
-                ></a>
-            {{/canAdd}}
+            <div class="btn-group float-right">
+                {{#canAdd}}
+                    <a
+                        class="btn btn-info fa fa-plus openmodal"
+                        href="{{actionBaseUri}}/add/"
+                        title="%ADMIN_NEW_ITEM%"
+                    ></a>
+                {{/canAdd}}
+            </div>
         </div>
         <div id="ajax-target" class="col-12 col-lg-9">
             {{{list}}}

@@ -2,6 +2,8 @@
 
 namespace VitesseCms\Admin\Traits;
 
+use VitesseCms\Mustache\DTO\RenderTemplateDTO;
+use VitesseCms\Mustache\Enum\ViewEnum;
 use VitesseCms\User\Enum\AclEnum;
 
 trait TraitAdminModelAddable
@@ -15,21 +17,10 @@ trait TraitAdminModelAddable
         $renderedForm = $form->renderForm(
             'admin/' . $this->router->getModuleName() . '/' . $this->router->getControllerName() . '/save/new'
         );
-        $this->viewService  ->set('content', $renderedForm);
-
-        /*$model = $this->getModel($id);
-        if($model !== null) {
-            $model->delete();
-            $this->logService->write(
-                $model->getId(),
-                get_class($model),
-                $this->languageService->get('ADMIN_ITEM_DELETED', [$model->getNameField()])
-            );
-            $this->flashService->setSucces('ADMIN_ITEM_DELETED', [$model->getNameField()]);
-        } else {
-            $this->flashService->setError('ADMIN_ITEM_NOT_FOUND');
-        }
-
-        $this->redirect($this->request->getHTTPReferer());*/
+        $this->viewService->set('content', $this->eventsManager->fire(ViewEnum::RENDER_TEMPLATE_EVENT,new RenderTemplateDTO(
+            'adminModelForm',
+            '',
+            ['form' => $renderedForm]
+        )));
     }
 }
