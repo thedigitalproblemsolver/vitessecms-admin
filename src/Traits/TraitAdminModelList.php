@@ -18,21 +18,31 @@ trait TraitAdminModelList
         $controllerUri = $this->url->getBaseUri() . 'admin/' . $this->router->getModuleName() . '/' . $this->router->getControllerName();
         $this->eventsManager->fire(get_class($this) . ':adminListFilter', $this, $adminlistForm);
 
+        $renderedModelList = $this->eventsManager->fire(ViewEnum::RENDER_TEMPLATE_EVENT,new RenderTemplateDTO(
+            'adminModelList',
+            '',
+            [
+                'models' => $this->getModelList($this->getFindValues()),
+                'actionBaseUri' => $controllerUri,
+                'baseUri' => $this->url->getBaseUri(),
+                'canPreview' => $aclService->hasAccess('preview') && ($this->isPreviewable??false),
+                'canDelete' => $aclService->hasAccess('delete') && ($this->isDeletable??false),
+                'canEdit' => $aclService->hasAccess('edit') && ($this->isEditable??false),
+                'canPublish' => $aclService->hasAccess('togglepublish') && ($this->isPublishable??false),
+                'canReadonly'  => $aclService->hasAccess('readonly') && ($this->isReadOnly??false),
+            ]
+        ));
+
         $this->viewService->set(
             'content',
             $this->eventsManager->fire(ViewEnum::RENDER_TEMPLATE_EVENT,new RenderTemplateDTO(
-                $this->request->isAjax()?'adminModelList':'adminModelListWithFilter',
+                $this->request->isAjax()?'adminModelListWithoutFilter':'adminModelListWithFilter',
                 '',
                 [
-                    'models' => $this->getModelList($this->getFindValues()),
                     'actionBaseUri' => $controllerUri,
-                    'baseUri' => $this->url->getBaseUri(),
-                    'canPreview' => $aclService->hasAccess('preview') && ($this->isPreviewable??false),
-                    'canDelete' => $aclService->hasAccess('delete') && ($this->isDeletable??false),
-                    'canEdit' => $aclService->hasAccess('edit') && ($this->isEditable??false),
                     'canAdd' => $aclService->hasAccess('add') && ($this->isAddable??false),
-                    'canReadonly'  => $aclService->hasAccess('readonly') && ($this->isReadOnly??false),
-                    'filterForm' => $adminlistForm->renderForm($controllerUri.'/adminlist', 'adminFilter')
+                    'filterForm' => $adminlistForm->renderForm($controllerUri.'/adminlist', 'adminFilter'),
+                    'list' => $renderedModelList
                 ]
             ))
         );

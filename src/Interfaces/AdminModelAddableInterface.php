@@ -6,5 +6,4 @@ use VitesseCms\Database\AbstractCollection;
 
 interface AdminModelAddableInterface extends AdminModelSaveInterface {
     public function addAction(): void;
-    public function getModelForm():AdminModelFormInterface;
 }

@@ -8,5 +8,5 @@ use VitesseCms\Form\Interfaces\AbstractFormInterface;
 interface AdminModelEditableInterface {
     public function editAction(string $id): void;
     public function getModel(string $id): ?AbstractCollection;
-    public function getModelForm(): AbstractFormInterface;
+    public function getModelForm(): AdminModelFormInterface;
 }
