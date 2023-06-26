@@ -2,6 +2,7 @@
 
 namespace VitesseCms\Admin\Traits;
 
+use VitesseCms\Language\Enums\LanguageEnum;
 use VitesseCms\User\Enum\AclEnum;
 
 trait TraitAdminModelDeletable
@@ -10,13 +11,14 @@ trait TraitAdminModelDeletable
 
     public function deleteAction(string $id): void
     {
+        $languageService = $this->eventsManager->fire(LanguageEnum::ATTACH_SERVICE_LISTENER->value, new \stdClass());
         $model = $this->getModel($id);
         if($model !== null) {
             $model->delete();
             $this->logService->write(
                 $model->getId(),
                 get_class($model),
-                $this->languageService->get('ADMIN_ITEM_DELETED', [$model->getNameField()])
+                $languageService->get('ADMIN_ITEM_DELETED', [$model->getNameField()])
             );
             $this->flashService->setSucces('ADMIN_ITEM_DELETED', [$model->getNameField()]);
         } else {
