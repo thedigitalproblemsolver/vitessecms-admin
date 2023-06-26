@@ -5,8 +5,8 @@ namespace VitesseCms\Admin\Interfaces;
 use VitesseCms\Database\AbstractCollection;
 use VitesseCms\Form\Interfaces\AbstractFormInterface;
 
-interface AdminModelEditableInterface {
-    public function editAction(string $id): void;
+interface AdminModelSaveInterface {
     public function getModel(string $id): ?AbstractCollection;
-    public function getModelForm(): AdminModelFormInterface;
+    public function saveAction(string $id): void;
+    public function getModelForm():AdminModelFormInterface;
 }

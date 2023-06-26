@@ -2,11 +2,19 @@
 {{#models}}
     <li
             id="{{getId}}"
-            class="list-group-item-success list-group-item"
+            class="list-group-item-{{#isPublished}}success{{/isPublished}}{{^isPublished}}danger{{/isPublished}} list-group-item"
             data-id="{{getId}}"
     >
         {{getNameField}}
         <div class="float-right">
+            {{#canPublish}}
+                <a
+                    href="{{actionBaseUri}}/togglePublish/{{getId}}"
+                    class="publish-toggle fa fa-circle {{^isPublished}}red{{/isPublished}}"
+                    title="{{#isPublished}}%ADMIN_SET_TO_UNPUBLISH%{{/isPublished}}{{^isPublished}}%ADMIN_SET_TO_PUBLISH%{{/isPublished}}"
+                    id="publish_{{getId}}"
+                ></a>
+            {{/canPublish}}
             {{#canPreview}}
                 {{#hasSlug}}
                     <a href="{{baseUri}}{{getNameField}}" target="_blank" title="Preview" class="fa fa-eye"></a>
