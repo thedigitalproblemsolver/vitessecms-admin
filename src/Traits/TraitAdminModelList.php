@@ -3,6 +3,7 @@
 namespace VitesseCms\Admin\Traits;
 
 use VitesseCms\Admin\Forms\AdminlistForm;
+use VitesseCms\Admin\Helpers\PaginationHelper;
 use VitesseCms\Database\Models\FindValue;
 use VitesseCms\Database\Models\FindValueIterator;
 use VitesseCms\Mustache\DTO\RenderTemplateDTO;
@@ -15,14 +16,21 @@ trait TraitAdminModelList
     {
         $aclService = $this->eventsManager->fire(AclEnum::ATTACH_SERVICE_LISTENER->value, new \stdClass());
         $adminlistForm = new AdminlistForm();
-        $controllerUri = $this->url->getBaseUri() . 'admin/' . $this->router->getModuleName() . '/' . $this->router->getControllerName();
+        $controllerUri = $this->urlService->getBaseUri() . 'admin/' . $this->router->getModuleName() . '/' . $this->router->getControllerName();
         $this->eventsManager->fire(get_class($this) . ':adminListFilter', $this, $adminlistForm);
 
+        $paginationHelper = new PaginationHelper(
+            $this->getModelList($this->getFilterValues()),
+            $this->urlService,
+            $this->request->get('offset','int',0),
+            10
+        );
+
         $renderedModelList = $this->eventsManager->fire(ViewEnum::RENDER_TEMPLATE_EVENT,new RenderTemplateDTO(
-            'adminModelList',
+            'adminModelListWithPagination',
             '',
             [
-                'models' => $this->getModelList($this->getFindValues()),
+                'pagination' => $paginationHelper,
                 'actionBaseUri' => $controllerUri,
                 'baseUri' => $this->url->getBaseUri(),
                 'canPreview' => $aclService->hasAccess('preview') && ($this->isPreviewable??false),
@@ -48,7 +56,7 @@ trait TraitAdminModelList
         );
     }
 
-    protected function getFindValues(): ?FindValueIterator
+    protected function getFilterValues(): ?FindValueIterator
     {
         if(!$this->request->hasPost('filter')) {
             return null;

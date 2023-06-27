@@ -8,7 +8,7 @@ use VitesseCms\Mustache\Enum\ViewEnum;
 
 trait TraitAdminModelReadOnly
 {
-    protected bool $isReadOnly = false;
+    protected bool $isReadOnly = true;
 
     public function readOnlyAction(string $id): void
     {
