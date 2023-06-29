@@ -29,16 +29,18 @@ trait TraitAdminModelReadOnly
             ksort($properties);
             $vars = [];
             foreach($properties as $key => $property) {
-                $value = $model->$key;
-                if(gettype($value) === 'object') {
-                    if ($value::class === 'MongoDB\BSON\UTCDateTime' ) {
-                        $value = $value->toDateTime()->format('Y-m-d H:i:s');
+                if(isset($model->$key)) {
+                    $value = $model->$key;
+                    if (gettype($value) === 'object') {
+                        if ($value::class === 'MongoDB\BSON\UTCDateTime') {
+                            $value = $value->toDateTime()->format('Y-m-d H:i:s');
+                        }
                     }
+                    $vars[] = [
+                        'key' => ucfirst(StringUtil::camelCaseToSeperator($key)),
+                        'value' => $value
+                    ];
                 }
-                $vars[] = [
-                    'key' => ucfirst(StringUtil::camelCaseToSeperator($key)),
-                    'value' => $value
-                ];
             }
             $this->viewService->setVar('content',
                 $this->eventsManager->fire(ViewEnum::RENDER_TEMPLATE_EVENT,new RenderTemplateDTO(
