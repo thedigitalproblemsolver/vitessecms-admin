@@ -36,6 +36,25 @@ trait TraitAdminModelReadOnly
                             $value = $value->toDateTime()->format('Y-m-d H:i:s');
                         }
                     }
+                    switch ($key) {
+                        case 'itemId':
+                            /*var_dump((string) $value);
+                            $item = $this->itemRepository->getById((string) $value, false);
+                            var_dump($item);
+                            die();
+                            if($item !== null) {
+                                $value = $item->getNameField();
+                            }*/
+                            break;
+                        case 'userId':
+                            $user = $this->userRepository->getById((string) $value, false);
+                            if($user !== null) {
+                                $value = $user->getNameField();
+                            }
+                            break;
+                    }
+
+
                     $vars[] = [
                         'key' => ucfirst(StringUtil::camelCaseToSeperator($key)),
                         'value' => $value
