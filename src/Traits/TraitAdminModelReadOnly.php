@@ -31,6 +31,8 @@ trait TraitAdminModelReadOnly
             $vars = [];
             foreach($properties as $key => $property) {
                 if(isset($model->$key)) {
+                    var_dump($key);
+                    var_dump($model->$key);
                     $vars[] = [
                         'key' => ucfirst(StringUtil::camelCaseToSeperator($key)),
                         'value' => $this->getReadOnlyValue($key, $model->class,$model->$key)
@@ -43,17 +45,18 @@ trait TraitAdminModelReadOnly
                     'adminModelReadOnly',
                     '',
                     ['model' => $model, 'properties' => $vars]
-            )));
+                )));
         }
     }
 
-    private function getReadOnlyValue(string $key, string $class, string|object $value):string
+    private function getReadOnlyValue(string $key, ?string $class, string|object $value):string
     {
         if (gettype($value) === 'object') {
             if ($value::class === 'MongoDB\BSON\UTCDateTime') {
                 $value = $value->toDateTime()->format('Y-m-d H:i:s');
             }
         }
+
         switch ($key) {
             case 'itemId':
                 if(!empty($class)) {
@@ -75,6 +78,6 @@ trait TraitAdminModelReadOnly
                 break;
         }
 
-        return $value;
+        return (string)$value;
     }
 }
