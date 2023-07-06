@@ -4,7 +4,6 @@ namespace VitesseCms\Admin\Traits;
 
 use VitesseCms\Mustache\DTO\RenderTemplateDTO;
 use VitesseCms\Mustache\Enum\ViewEnum;
-use VitesseCms\User\Enum\AclEnum;
 
 trait TraitAdminModelAddable
 {

@@ -68,8 +68,18 @@ trait TraitAdminModelList
                 $value = trim($filterInput);
             endif;
 
-            if (!empty($filterInput)) {
-                $filterValues[] = new FindValue($key, $value, 'like');
+            if(!empty($filterInput)) {
+                switch ($key) {
+                    case 'published':
+                        $filterValues[] = match ($filterInput){
+                            'true' => new FindValue($key, true),
+                            'false' => new FindValue($key, false)
+                        };
+                        break;
+                    default:
+                        $filterValues[] = new FindValue($key, $value, 'like');
+                    break;
+                }
             }
         }
 

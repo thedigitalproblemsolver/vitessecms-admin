@@ -3,7 +3,6 @@
 namespace VitesseCms\Admin\Interfaces;
 
 use VitesseCms\Database\AbstractCollection;
-use VitesseCms\Form\Interfaces\AbstractFormInterface;
 
 interface AdminModelSaveInterface {
     public function getModel(string $id): ?AbstractCollection;
