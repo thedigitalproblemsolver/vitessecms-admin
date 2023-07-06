@@ -2,7 +2,6 @@
 
 namespace VitesseCms\Admin\Traits;
 
-use VitesseCms\Content\Enum\ItemEnum;
 use VitesseCms\Core\Utils\StringUtil;
 use VitesseCms\Mustache\DTO\RenderTemplateDTO;
 use VitesseCms\Mustache\Enum\ViewEnum;

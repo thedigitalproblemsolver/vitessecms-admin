@@ -4,7 +4,6 @@ namespace VitesseCms\Admin\Interfaces;
 
 use VitesseCms\Database\AbstractCollection;
 
-interface AdminModelReadOnlyInterface {
-    public function readOnlyAction(string $id): void;
+interface AdminModelCopyableInterface {
     public function getModel(string $id): ?AbstractCollection;
 }

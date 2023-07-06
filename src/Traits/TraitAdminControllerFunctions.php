@@ -28,6 +28,9 @@ use VitesseCms\Mustache\Enum\ViewEnum;
 use VitesseCms\Mustache\DTO\RenderTemplateDTO;
 use const pcov\version;
 
+/**
+ * @deprecated make use of seperate traits and AbstractControllerAdmin
+ */
 trait TraitAdminControllerFunctions
 {
     /**
