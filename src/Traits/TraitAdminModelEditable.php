@@ -4,7 +4,6 @@ namespace VitesseCms\Admin\Traits;
 
 use VitesseCms\Mustache\DTO\RenderTemplateDTO;
 use VitesseCms\Mustache\Enum\ViewEnum;
-use VitesseCms\User\Enum\AclEnum;
 
 trait TraitAdminModelEditable
 {
@@ -13,8 +12,8 @@ trait TraitAdminModelEditable
     public function editAction(string $id): void
     {
         $modelForm = $this->getModelForm();
-        $modelForm->buildForm();
         $modelForm->setEntity($this->getModel($id));
+        $modelForm->buildForm();
         $renderedForm = $modelForm->renderForm(
             $this->urlService->getBaseUri().'admin/' . $this->router->getModuleName() . '/' . $this->router->getControllerName() . '/save/'.$id
         );

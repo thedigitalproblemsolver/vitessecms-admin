@@ -38,6 +38,7 @@ trait TraitAdminModelList
                 'canEdit' => $aclService->hasAccess('edit') && ($this->isEditable??false),
                 'canPublish' => $aclService->hasAccess('togglepublish') && ($this->isPublishable??false),
                 'canReadonly'  => $aclService->hasAccess('readonly') && ($this->isReadOnly??false),
+                'canCopy'  => $aclService->hasAccess('copy') && ($this->isCopyable??false),
             ]
         ));
 
@@ -68,8 +69,18 @@ trait TraitAdminModelList
                 $value = trim($filterInput);
             endif;
 
-            if (!empty($filterInput)) {
-                $filterValues[] = new FindValue($key, $value, 'like');
+            if(!empty($filterInput)) {
+                switch ($key) {
+                    case 'published':
+                        $filterValues[] = match ($filterInput){
+                            'true' => new FindValue($key, true),
+                            'false' => new FindValue($key, false)
+                        };
+                        break;
+                    default:
+                        $filterValues[] = new FindValue($key, $value, 'like');
+                    break;
+                }
             }
         }
 

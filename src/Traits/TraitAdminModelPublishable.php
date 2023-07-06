@@ -2,9 +2,6 @@
 
 namespace VitesseCms\Admin\Traits;
 
-use VitesseCms\Language\Enums\LanguageEnum;
-use VitesseCms\User\Enum\AclEnum;
-
 trait TraitAdminModelPublishable
 {
     protected bool $isPublishable = true;

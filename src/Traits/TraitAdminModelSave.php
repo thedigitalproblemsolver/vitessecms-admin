@@ -2,25 +2,13 @@
 
 namespace VitesseCms\Admin\Traits;
 
-use VitesseCms\Admin\Forms\AdminlistForm;
-use VitesseCms\Analytics\Models\BlackListEntry;
-use VitesseCms\Database\Models\FindValue;
-use VitesseCms\Database\Models\FindValueIterator;
-use VitesseCms\Mustache\DTO\RenderTemplateDTO;
-use VitesseCms\Mustache\Enum\ViewEnum;
-use VitesseCms\User\Enum\AclEnum;
-
 trait TraitAdminModelSave
 {
     public function saveAction(string $id): void
     {
         $modelForm = $this->getModelForm();
+        $modelForm->setEntity($this->getModel($id));
         $modelForm->buildForm();
-        if($id === 'new') {
-            $modelForm->setEntity(new BlackListEntry());
-        } else {
-            $modelForm->setEntity($this->getModel($id));
-        }
 
         $modelForm->bind($this->request->getPost());
         if($modelForm->validate()) {
