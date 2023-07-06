@@ -38,6 +38,7 @@ trait TraitAdminModelList
                 'canEdit' => $aclService->hasAccess('edit') && ($this->isEditable??false),
                 'canPublish' => $aclService->hasAccess('togglepublish') && ($this->isPublishable??false),
                 'canReadonly'  => $aclService->hasAccess('readonly') && ($this->isReadOnly??false),
+                'canCopy'  => $aclService->hasAccess('copy') && ($this->isCopyable??false),
             ]
         ));
 

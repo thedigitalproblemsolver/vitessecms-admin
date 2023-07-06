@@ -26,6 +26,9 @@
             {{#canEdit}}
                 <a href="{{actionBaseUri}}/edit/{{getId}}" target="_blank" title="%ADMIN_EDIT_ITEM%" class="fa fa-edit openmodal"></a>
             {{/canEdit}}
+            {{#canCopy}}
+                <a href="{{actionBaseUri}}/copy/{{getId}}" title="%ADMIN_COPY_ITEM%" class="fa fa-copy"></a>
+            {{/canCopy}}
             {{#canDelete}}
                 <a id="delete_{{getId}}" href="{{actionBaseUri}}/delete/{{getId}}" target="_blank" title="%ADMIN_DELETE_ITEM%" class="fa fa-trash"></a>
             {{/canDelete}}
