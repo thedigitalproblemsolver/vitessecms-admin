@@ -2,6 +2,8 @@
 
 namespace VitesseCms\Admin\Traits;
 
+use VitesseCms\Database\AbstractCollection;
+
 trait TraitAdminModelSave
 {
     public function saveAction(string $id): void
@@ -12,6 +14,7 @@ trait TraitAdminModelSave
 
         $modelForm->bind($this->request->getPost());
         if($modelForm->validate()) {
+            /** @var AbstractCollection $model */
             $model = $modelForm->getEntity();
             $model->save();
             $this->logService->write($model->getId(), get_class($model), 'Item saved');

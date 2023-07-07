@@ -30,8 +30,6 @@ trait TraitAdminModelReadOnly
             $vars = [];
             foreach($properties as $key => $property) {
                 if(isset($model->$key)) {
-                    var_dump($key);
-                    var_dump($model->$key);
                     $vars[] = [
                         'key' => ucfirst(StringUtil::camelCaseToSeperator($key)),
                         'value' => $this->getReadOnlyValue($key, $model->class,$model->$key)
