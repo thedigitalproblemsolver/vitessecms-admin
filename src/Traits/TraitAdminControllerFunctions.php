@@ -325,9 +325,7 @@ trait TraitAdminControllerFunctions
             $item = $this->parseFormElement($form, $item);
             $item = $this->parseSubmittedFiles($item);
             //TODO move to native collection beforeSave event?
-            echo 'a';
             $this->eventsManager->fire(get_class($this) . ':beforeModelSave', $this, $item);
-            echo 'b';
             $item->save();
 
             if ($item->_('parentId')) :
