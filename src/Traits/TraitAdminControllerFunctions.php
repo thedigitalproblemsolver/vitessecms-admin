@@ -339,7 +339,7 @@ trait TraitAdminControllerFunctions
 
             //TODO move to native collection afterSave event?
             $this->afterSave($item);
-            $this->cache->flush();
+            //$this->cache->flush();
 
             $this->log->write($item->getId(), get_class($item), 'Item saved');
 
