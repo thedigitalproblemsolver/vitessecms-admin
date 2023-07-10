@@ -13,19 +13,22 @@ trait TraitAdminModelSave
         $modelForm->buildForm();
         $modelForm->bind($this->request->getPost());
         if($modelForm->validate()) {
-            $this->saveModel($modelForm);
+            $redirectId = $this->saveModel($modelForm);
         } else {
             $this->flashService->setError('ADMIN_ITEM_NOT_SAVED');
+            $redirectId = $id;
         }
 
-        $this->redirect($this->urlService->getBaseUri().'admin/' . $this->routerService->getModuleName() . '/' . $this->routerService->getControllerName() . '/edit/'.$model->getId());
+        $this->redirect($this->urlService->getBaseUri().'admin/' . $this->routerService->getModuleName() . '/' . $this->routerService->getControllerName() . '/edit/'.$redirectId);
     }
 
-    private function saveModel(AdminModelFormInterface $modelForm):void
+    private function saveModel(AdminModelFormInterface $modelForm):string
     {
         $model = $modelForm->getEntity();
         $model->save();
         $this->logService->write($model->getId(), get_class($model), 'Item saved');
         $this->flashService->setSucces('ADMIN_ITEM_SAVED');
+
+        return (string) $model->getId();
     }
 }
