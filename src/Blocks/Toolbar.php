@@ -23,8 +23,6 @@ class Toolbar extends AbstractBlockModel
             ]
         );
 
-        $this->getDi()->get('assets')->loadAdmin();
-
         return $params;
     }
 }
