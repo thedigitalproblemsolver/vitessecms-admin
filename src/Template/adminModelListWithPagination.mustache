@@ -44,7 +44,7 @@
                 <a class="page-link fa fa-fast-backward" href="{{pagination.getFirstPageUrl}}"></a>
             </li>
             <li class="page-item">
-                <a class="page-link fa fa-step-backward" href="{{pagination.getPreviousPageUrl}}"></a>
+                <a class="page-link fa fa-step-backward" rel="prev" href="{{pagination.getPreviousPageUrl}}"></a>
             </li>
         {{/pagination.hasPreviousPage}}
         <li class="page-item">
@@ -54,7 +54,7 @@
         </li>
         {{#pagination.hasNextPage}}
             <li class="page-item">
-                <a class="page-link fa fa-step-forward" href="{{pagination.getNextPageUrl}}"></a>
+                <a class="page-link fa fa-step-forward" rel="next" href="{{pagination.getNextPageUrl}}"></a>
             </li>
             <li class="page-item">
                 <a class="page-link fa fa-fast-forward" href="{{pagination.getLastPageUrl}}"></a>

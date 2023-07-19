@@ -7,12 +7,13 @@ use VitesseCms\Media\Services\AssetsService;
 class RenderListener {
     public function __construct(
         private readonly bool $isAdminPage,
+        private readonly bool $hasAdminAccess,
         private readonly AssetsService $assetsService
     ){}
 
     public function loadAssets(): void
     {
-        if($this->isAdminPage) {
+        if($this->isAdminPage || $this->hasAdminAccess) {
             $this->assetsService->loadAdmin();
         }
     }
