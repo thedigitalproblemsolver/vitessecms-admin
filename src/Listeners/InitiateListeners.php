@@ -11,6 +11,13 @@ class InitiateListeners implements InitiateListenersInterface
 {
     public static function setListeners(InjectableInterface $di): void
     {
-        $di->eventsManager->attach(AssetsEnum::RENDER_LISTENER->value, new RenderListener(AdminUtil::isAdminPage(), $di->assets));
+        $di->eventsManager->attach(
+            AssetsEnum::RENDER_LISTENER->value,
+            new RenderListener(
+                AdminUtil::isAdminPage(),
+                $di->user->hasAdminAccess(),
+                $di->assets
+            )
+        );
     }
 }
