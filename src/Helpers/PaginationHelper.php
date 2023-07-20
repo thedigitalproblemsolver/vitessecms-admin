@@ -69,6 +69,12 @@ class PaginationHelper
 
     public function getPreviousPageUrl(): string
     {
-        return $this->urlService->addParamsToQuery('offset' ,(string)($this->offset-$this->limit),$this->urlService->getCurrentUrl());
+        $limit = $this->offset-$this->limit;
+
+        if($limit > 0 ) {
+            return $this->urlService->addParamsToQuery('offset' ,(string)$limit,$this->urlService->getCurrentUrl());
+        }
+
+        return $this->getFirstPageUrl();
     }
 }
