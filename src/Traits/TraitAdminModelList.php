@@ -17,7 +17,6 @@ trait TraitAdminModelList
         $aclService = $this->eventsManager->fire(AclEnum::ATTACH_SERVICE_LISTENER->value, new \stdClass());
         $adminlistForm = new AdminlistForm();
         $controllerUri = $this->urlService->getBaseUri() . 'admin/' . $this->router->getModuleName() . '/' . $this->router->getControllerName();
-        $this->eventsManager->fire(get_class($this) . ':adminListFilter', $this, $adminlistForm);
 
         $paginationHelper = new PaginationHelper(
             $this->getModelList($this->getFilterValues()),
@@ -25,6 +24,8 @@ trait TraitAdminModelList
             $this->request->get('offset','int',0),
             10
         );
+
+        $this->eventsManager->fire(get_class($this) . ':adminListFilter', $this, $adminlistForm);
 
         $renderedModelList = $this->eventsManager->fire(ViewEnum::RENDER_TEMPLATE_EVENT,new RenderTemplateDTO(
             'adminModelListWithPagination',
@@ -59,31 +60,49 @@ trait TraitAdminModelList
 
     protected function getFilterValues(): ?FindValueIterator
     {
-        if(!$this->request->hasPost('filter')) {
+        $filter = $this->getFilter();
+        if($filter === null) {
             return null;
         }
 
         $filterValues = [];
-        foreach ($this->request->getPost('filter') as $key => $filterInput) {
+        foreach ($filter as $key => $filterInput) {
             if (is_string($filterInput)) :
                 $value = trim($filterInput);
             endif;
 
-            if(!empty($filterInput)) {
+            if (!empty($filterInput)) {
                 switch ($key) {
                     case 'published':
-                        $filterValues[] = match ($filterInput){
+                        $filterValues[] = match ($filterInput) {
                             'true' => new FindValue($key, true),
                             'false' => new FindValue($key, false)
                         };
                         break;
                     default:
                         $filterValues[] = new FindValue($key, $value, 'like');
-                    break;
+                        break;
                 }
             }
         }
 
         return new FindValueIterator($filterValues);
+    }
+
+    private function getFilter(): ?array
+    {
+        $sessionKey = 'filter_'.md5($this::class);
+
+        if(!$this->request->hasPost('filter') && !$this->session->has($sessionKey)) {
+            return null;
+        }
+
+        if(!$this->request->hasPost('filter') && $this->session->has($sessionKey)) {
+            return $_REQUEST['filter'] = $this->session->get($sessionKey);
+        }
+
+        $this->session->set($sessionKey, $this->request->getPost('filter'));
+
+        return $this->request->getPost('filter');
     }
 }
