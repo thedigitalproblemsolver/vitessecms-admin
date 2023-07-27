@@ -32,7 +32,7 @@ trait TraitAdminModelReadOnly
                 if(isset($model->$key)) {
                     $vars[] = [
                         'key' => ucfirst(StringUtil::camelCaseToSeperator($key)),
-                        'value' => $this->getReadOnlyValue($key, $model->class,$model->$key)
+                        'value' => $this->getReadOnlyValue($key, $model::class,$model->$key)
                     ];
                 }
             }
@@ -46,7 +46,7 @@ trait TraitAdminModelReadOnly
         }
     }
 
-    private function getReadOnlyValue(string $key, ?string $class, string|object $value):string
+    private function getReadOnlyValue(string $key, ?string $class, string|object|int $value):string
     {
         if (gettype($value) === 'object') {
             if ($value::class === 'MongoDB\BSON\UTCDateTime') {
