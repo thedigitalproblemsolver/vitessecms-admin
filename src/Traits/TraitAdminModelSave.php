@@ -11,6 +11,8 @@ trait TraitAdminModelSave
         $modelForm = $this->getModelForm();
         $modelForm->setEntity($this->getModel($id));
         $modelForm->buildForm();
+        var_dump($this->request->getPost());
+        die();
         $modelForm->bind($this->request->getPost());
         if($modelForm->validate()) {
             $redirectId = $this->saveModel($modelForm);

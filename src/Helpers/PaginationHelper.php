@@ -77,4 +77,9 @@ class PaginationHelper
 
         return $this->getFirstPageUrl();
     }
+
+    public function hasPages(): bool
+    {
+        return $this->count() > $this->limit;
+    }
 }
