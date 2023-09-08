@@ -25,6 +25,7 @@ trait TraitAdminModelSave
     private function saveModel(AdminModelFormInterface $modelForm):string
     {
         $model = $modelForm->getEntity();
+        $this->eventsManager->fire(self::class.':beforeSaveModel',$model);
         $model->save();
         $this->logService->write($model->getId(), get_class($model), 'Item saved');
         $this->flashService->setSucces('ADMIN_ITEM_SAVED');

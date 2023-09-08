@@ -7,6 +7,8 @@ use VitesseCms\Mustache\Enum\ViewEnum;
 
 trait TraitAdminModelEditable
 {
+    use TraitAdminModelSave;
+
     protected bool $isEditable = true;
     protected array $formParams = [];
 
