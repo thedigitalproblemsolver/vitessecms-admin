@@ -3,6 +3,7 @@
 namespace VitesseCms\Admin\Traits;
 
 use VitesseCms\Core\Utils\StringUtil;
+use VitesseCms\Database\AbstractCollection;
 use VitesseCms\Mustache\DTO\RenderTemplateDTO;
 use VitesseCms\Mustache\Enum\ViewEnum;
 
@@ -13,6 +14,7 @@ trait TraitAdminModelReadOnly
     public function readOnlyAction(string $id): void
     {
         $model = $this->getModel($id);
+
         if($model !== null) {
             $properties = get_class_vars($model::class);
             unset(
@@ -32,7 +34,7 @@ trait TraitAdminModelReadOnly
                 if(isset($model->$key)) {
                     $vars[] = [
                         'key' => ucfirst(StringUtil::camelCaseToSeperator($key)),
-                        'value' => $this->getReadOnlyValue($key, $model::class,$model->$key)
+                        'value' => $this->getReadOnlyValue($key, $model)
                     ];
                 }
             }
@@ -46,35 +48,68 @@ trait TraitAdminModelReadOnly
         }
     }
 
-    private function getReadOnlyValue(string $key, ?string $class, string|object|int $value):string
+    private function getReadOnlyValue(string $key, AbstractCollection $model):string
     {
+        $class = $model::class;
+        $value = $model->$key;
+
         if (gettype($value) === 'object') {
             if ($value::class === 'MongoDB\BSON\UTCDateTime') {
                 $value = $value->toDateTime()->format('Y-m-d H:i:s');
             }
         }
 
-        switch ($key) {
-            case 'itemId':
-                if(!empty($class)) {
-                    $eventTrigger = array_reverse(explode('\\',$class))[0].'Listener:getRepository';
-                    $repository = $this->eventsManager->fire($eventTrigger, new \stdClass());
-                    if($repository !== null) {
-                        $item = $repository->getById((string)$value, false);
-                        if ($item !== null) {
-                            $value = $item->getNameField().' ( '.$value.' )';
-                        }
-                    }
-                }
-                break;
-            case 'userId':
-                $user = $this->userRepository->getById((string) $value, false);
-                if($user !== null) {
-                    $value = $user->getNameField().' ( '.$value.' )';
-                }
-                break;
+        return match ($key) {
+            'fieldNames' => $this->parseFieldNames($model, $value),
+            'itemId' =>  $this->parseItemId($class,$value),
+            'userId' => $this->parseUserId($value),
+            default => (string)$value
+
+        };
+    }
+
+    private function parseUserId(string $value): string
+    {
+        $user = $this->userRepository->getById($value, false);
+        if($user !== null) {
+            return $user->getNameField().' ( '.$value.' )';
         }
 
-        return (string)$value;
+        return $value;
+    }
+
+    private function parseItemId(?string $class, string $value): string
+    {
+        if(!empty($class)) {
+            $eventTrigger = array_reverse(explode('\\',$class))[0].'Listener:getRepository';
+            $repository = $this->eventsManager->fire($eventTrigger, new \stdClass());
+            if($repository !== null) {
+                $item = $repository->getById($value, false);
+                if ($item !== null) {
+                    return $item->getNameField().' ( '.$value.' )';
+                }
+            }
+        }
+
+        return $value;
+    }
+
+    private function parseFieldNames(AbstractCollection $model, array $value): string
+    {
+        $data = [];
+        foreach ($value as $k => $v) {
+            $data[] = [
+                'key' => $v,
+                'value' => $model->_($k)
+            ];
+        }
+
+        if(count($data) === 0 ) {
+            return '';
+        }
+
+        return $this->eventsManager->fire(ViewEnum::RENDER_TEMPLATE_EVENT,
+            new RenderTemplateDTO('FieldNamesTable', '', ['data' => $data])
+        );
     }
 }

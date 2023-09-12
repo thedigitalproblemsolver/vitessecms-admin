@@ -19,16 +19,16 @@ trait TraitAdminModelCopyable
         $model->set('createdAt', date('Y-m-d H:i:s'));
         $model->setPublished(false);
 
-        $langages = $languageRepository->findAll();
-        while ($langages->valid()) {
-            $language = $langages->current();
+        $languages = $languageRepository->findAll();
+        while ($languages->valid()) {
+            $language = $languages->current();
             $model->set(
                 'name',
                 $model->getNameField($language->getShortCode()) . ' - copy',
                 true,
                 $language->getShortCode()
             );
-            $langages->next();
+            $languages->next();
         }
         $model->save();
 
