@@ -1,7 +1,9 @@
-<?php declare(strict_types=1);
+<?php
+declare(strict_types=1);
 
 namespace VitesseCms\Admin\Traits;
 
+use stdClass;
 use VitesseCms\Language\Enums\LanguageEnum;
 use VitesseCms\Language\Repositories\LanguageRepository;
 
@@ -12,7 +14,7 @@ trait TraitAdminModelCopyable
     public function copyAction(string $id): void
     {
         /** @var LanguageRepository $languageRepository */
-        $languageRepository = $this->eventsManager->fire(LanguageEnum::GET_REPOSITORY->value, new \stdClass());
+        $languageRepository = $this->eventsManager->fire(LanguageEnum::GET_REPOSITORY->value, new stdClass());
         $model = $this->getModel($id);
 
         $model->resetId();
@@ -32,6 +34,9 @@ trait TraitAdminModelCopyable
         }
         $model->save();
 
-        $this->redirect($this->urlService->getBaseUri().'admin/' . $this->routerService->getModuleName() . '/' . $this->routerService->getControllerName() . '/adminList/');
+        $this->redirect(
+            $this->urlService->getBaseUri() . 'admin/' . $this->routerService->getModuleName(
+            ) . '/' . $this->routerService->getControllerName() . '/adminList/'
+        );
     }
 }

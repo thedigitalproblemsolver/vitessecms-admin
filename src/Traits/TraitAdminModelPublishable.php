@@ -1,4 +1,5 @@
-<?php declare(strict_types=1);
+<?php
+declare(strict_types=1);
 
 namespace VitesseCms\Admin\Traits;
 
@@ -20,9 +21,12 @@ trait TraitAdminModelPublishable
                 $this->flashService->setSucces('ADMIN_ITEM_UNPUBLISHED');
                 $this->logService->write($model->getId(), $model::class, '%ADMIN_ITEM_UNPUBLISHED%');
                 break;
-        };
+        }
         $model->save();
 
-        $this->redirect($this->urlService->getBaseUri().'admin/' . $this->routerService->getModuleName() . '/' . $this->routerService->getControllerName() . '/adminlist/');
+        $this->redirect(
+            $this->urlService->getBaseUri() . 'admin/' . $this->routerService->getModuleName(
+            ) . '/' . $this->routerService->getControllerName() . '/adminlist/'
+        );
     }
 }

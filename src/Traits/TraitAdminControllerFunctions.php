@@ -1,4 +1,5 @@
-<?php declare(strict_types=1);
+<?php
+declare(strict_types=1);
 
 namespace VitesseCms\Admin\Traits;
 
@@ -10,6 +11,7 @@ use Phalcon\Forms\Element\Select;
 use Phalcon\Forms\Element\Text;
 use Phalcon\Http\Request;
 use Phalcon\Incubator\MongoDB\Mvc\Collection;
+use ReflectionClass;
 use VitesseCms\Admin\Forms\AdminlistForm;
 use VitesseCms\Admin\Utils\AdminListUtil;
 use VitesseCms\Content\Models\Item;
@@ -23,9 +25,10 @@ use VitesseCms\Datagroup\Models\Datagroup;
 use VitesseCms\Form\AbstractForm;
 use VitesseCms\Form\Helpers\ElementHelper;
 use VitesseCms\Language\Models\Language;
-use \stdClass;
+use stdClass;
 use VitesseCms\Mustache\Enum\ViewEnum;
 use VitesseCms\Mustache\DTO\RenderTemplateDTO;
+
 use const pcov\version;
 
 /**
@@ -97,7 +100,8 @@ trait TraitAdminControllerFunctions
     {
         parent::onConstruct();
 
-        $this->link = $this->url->getBaseUri() . 'admin/' . $this->router->getModuleName() . '/' . $this->router->getControllerName();
+        $this->link = $this->url->getBaseUri() . 'admin/' . $this->router->getModuleName(
+            ) . '/' . $this->router->getControllerName();
         $this->class = null;
         $this->classForm = null;
         $this->listOrder = 'name';
@@ -106,17 +110,20 @@ trait TraitAdminControllerFunctions
         $this->listNestable = false;
         $this->listTemplate = 'adminList';
         $this->listTemplatePath = $this->configuration->getVendorNameDir() . 'admin/src/Resources/views/';
-        $this->controllerName = (new \ReflectionClass($this))->getShortName();
+        $this->controllerName = (new ReflectionClass($this))->getShortName();
         $this->renderParams = [];
         $this->displayEditButton = true;
     }
 
     public function adminListAction(): void
     {
-        $adminListButtons = $this->eventsManager->fire(ViewEnum::RENDER_TEMPLATE_EVENT, new RenderTemplateDTO(
-            str_replace('admin', '', $this->router->getControllerName()) . 'Buttons',
-            $this->router->getModuleName() . '/src/Resources/views/admin/list/'
-        ));
+        $adminListButtons = $this->eventsManager->fire(
+            ViewEnum::RENDER_TEMPLATE_EVENT,
+            new RenderTemplateDTO(
+                str_replace('admin', '', $this->router->getControllerName()) . 'Buttons',
+                $this->router->getModuleName() . '/src/Resources/views/admin/list/'
+            )
+        );
 
         $this->view->set(
             'content',
@@ -139,6 +146,243 @@ trait TraitAdminControllerFunctions
         );
 
         $this->prepareView();
+    }
+
+    public function saveAction(?string $itemId = null, AbstractCollection $item = null, AbstractForm $form = null): void
+    {
+        /** @deprecated item should be passes in controller */
+        if ($item === null) :
+            $this->class::setFindPublished(false);
+            $this->class::setRenderFields(false);
+            if ($itemId !== null) :
+                $item = $this->class::findById($itemId);
+            else :
+                $item = new $this->class();
+            endif;
+        endif;
+
+        $this->eventsManager->fire(get_class($this) . ':beforePostBinding', $this, $item);
+        if ($form === null) :
+            $form = $this->getItemForm($form, $item);
+        endif;
+        $form->bind($this->request->getPost(), $item);
+
+        if ($form->validate($this)) :
+            $item = $this->parseFormElement($form, $item);
+            $item = $this->parseSubmittedFiles($item);
+            //TODO move to native collection beforeSave event?
+            $this->eventsManager->fire(get_class($this) . ':beforeModelSave', $this, $item);
+            $item->save();
+
+            if ($item->_('parentId')) :
+                Item::setFindPublished(false);
+                $parentItem = Item::findById($item->_('parentId'));
+                if ($parentItem) :
+                    $parentItem->set('hasChildren', true);
+                    $parentItem->save();
+                endif;
+            endif;
+
+            //TODO move to native collection afterSave event?
+            $this->afterSave($item);
+            //$this->cache->flush();
+
+            $this->log->write($item->getId(), get_class($item), 'Item saved');
+
+            $this->flash->setSucces('ADMIN_ITEM_SAVED');
+        endif;
+
+        $this->redirect($this->link . '/edit/' . $item->getId(), [], false);
+    }
+
+    /**
+     * @param AbstractCollection $item
+     */
+    public function beforeModelSave(AbstractCollection $item): void
+    {
+    }
+
+    /**
+     * @param AbstractCollection $item
+     */
+    public function afterSave(AbstractCollection $item): void
+    {
+    }
+
+    public function editAction(
+        string $itemId = null,
+        string $template = 'editForm',
+        string $formTemplatePath = 'form/src/Resources/views/admin/',
+        AbstractForm $form = null
+    ): void {
+        $adminEditForm = '';
+        /** @var AbstractCollection $item */
+        $item = new $this->class();
+        if ($itemId !== null) :
+            $this->class::setFindPublished(false);
+            $this->class::setRenderFields(false);
+            $item = $this->class::findById($itemId);
+        endif;
+
+        $this->eventsManager->fire(get_class($this) . ':beforeEdit', $this, $item);
+
+        $form = $this->getItemForm($form, $item);
+        if ($form !== null) :
+            $adminEditForm = $form->renderForm(
+                'admin/' . $this->router->getModuleName() . '/' . $this->router->getControllerName(
+                ) . '/save/' . $itemId
+            );
+        endif;
+
+        $adminButtons = $this->eventsManager->fire(
+            ViewEnum::RENDER_TEMPLATE_EVENT,
+            new RenderTemplateDTO(
+                str_replace('admin', '', $this->router->getControllerName()) . 'Buttons',
+                $this->router->getModuleName() . '/src/Resources/views/admin/edit/',
+                ['editId' => $item->getId()]
+            )
+        );
+
+        $this->view->setVar(
+            'content',
+            $this->eventsManager->fire(
+                ViewEnum::RENDER_TEMPLATE_EVENT,
+                new RenderTemplateDTO(
+                    $template,
+                    $formTemplatePath,
+                    array_merge([
+                        'adminEditItem' => $item,
+                        'adminButtons' => $adminButtons,
+                        'adminEditForm' => $adminEditForm,
+                    ], $this->renderParams)
+                )
+            )
+        );
+
+        $this->prepareView();
+    }
+
+    public function deleteAction(): void
+    {
+        /** @var AbstractCollection $item */
+        $item = new $this->class();
+        $item::setFindPublished(false);
+        $item::setRenderFields(false);
+        $item = $item::findById($this->dispatcher->getParam(0));
+        if ($item) :
+            $this->eventsManager->fire(get_class($item) . ':beforeDelete', $item);
+            $item->beforeDelete();
+            $item->delete();
+            $item->afterDelete();
+            $this->eventsManager->fire(get_class($item) . ':afterDelete', $item);
+
+            if ($this->class !== Log::class) :
+                $this->log->write(
+                    $item->getId(),
+                    $this->class,
+                    $this->language->get('ADMIN_ITEM_DELETED', [$item->_('name')])
+                );
+            endif;
+
+            $this->flash->setSucces('ADMIN_ITEM_DELETED', [$item->_('name')]);
+
+            if ($item->hasParent()) :
+                $this->class::setFindValue('parentId', $item->getParentId());
+                $count = $this->class::count();
+                if ($count === 0) :
+                    $parent = $this->class::findById($item->getParentId());
+                    if ($parent) :
+                        $parent->hasChildren = false;
+                        $parent->save();
+                    endif;
+                endif;
+            endif;
+        else :
+            $this->flash->setError('ADMIN_ITEM_NOT_FOUND');
+        endif;
+
+        $this->redirect($this->link . '/adminList');
+    }
+
+    public function copyAction(string $itemId): void
+    {
+        $this->class::setFindPublished(false);
+        $item = $this->class::findById($this->dispatcher->getParam(0));
+        $item->resetId();
+        $item->set('createdAt', date('Y-m-d H:i:s'));
+        $item->set('published', false);
+
+        $parsedLanguage = [];
+        foreach (Language::findAll() as $language) :
+            if (!in_array($language->_('short'), $parsedLanguage, true)) :
+                $item->set(
+                    'name',
+                    $item->_('name', $language->_('short')) . ' - copy',
+                    true,
+                    $language->_('short')
+                );
+                $parsedLanguage[] = $language->_('short');
+            endif;
+        endforeach;
+        $item->save();
+
+        $this->redirect($this->link . '/adminList');
+    }
+
+    public function togglePublishAction(): void
+    {
+        $logMessage = 'ADMIN_ITEM_PUBLISHED';
+
+        /** @var AbstractCollection $item */
+        $item = new $this->class();
+        $item::setFindPublished(false);
+        if (is_callable([$item, 'setRenderFields'])) :
+            $item::setRenderFields(false);
+        endif;
+        $item = $item::findById($this->dispatcher->getParam(0));
+
+        if ($item->_('published') === true) :
+            $item->set('published', false);
+            $logMessage = 'ADMIN_ITEM_UNPUBLISHED';
+            $this->flash->setSucces('ADMIN_ITEM_UNPUBLISHED');
+        else :
+            $item->set('published', true);
+            $this->flash->setSucces('ADMIN_ITEM_PUBLISHED');
+        endif;
+
+        $item->beforePublish();
+        $item->save();
+        $item->afterPublish();
+        $this->eventsManager->fire(get_class($this) . ':afterPublish', $this, $item);
+
+        $this->log->write($item->getId(), $this->class, $this->language->get($logMessage));
+
+        $this->redirect();
+    }
+
+    public function saveorderAction(): void
+    {
+        $ordering = (array)json_decode($this->request->get('ordering'));
+        $this->recursiveSaveOrder($ordering[0], $this->class);
+
+        $this->flash->setSucces('ADMIN_ORDERING_SAVED');
+
+        $this->redirect($this->link . '/adminList');
+    }
+
+    public function addRenderParam(string $key, $value): void
+    {
+        $this->renderParams[$key] = $value;
+    }
+
+    public function isListSortable(): bool
+    {
+        return $this->listSortable;
+    }
+
+    public function getLink(): string
+    {
+        return $this->link;
     }
 
     protected function recursiveAdminList(Pagination $pagination, int $level = 0): string
@@ -302,53 +546,6 @@ trait TraitAdminControllerFunctions
         endif;
     }
 
-    public function saveAction(?string $itemId = null, AbstractCollection $item = null, AbstractForm $form = null): void
-    {
-        /** @deprecated item should be passes in controller */
-        if ($item === null) :
-            $this->class::setFindPublished(false);
-            $this->class::setRenderFields(false);
-            if ($itemId !== null) :
-                $item = $this->class::findById($itemId);
-            else :
-                $item = new $this->class();
-            endif;
-        endif;
-
-        $this->eventsManager->fire(get_class($this) . ':beforePostBinding', $this, $item);
-        if ($form === null) :
-            $form = $this->getItemForm($form, $item);
-        endif;
-        $form->bind($this->request->getPost(), $item);
-
-        if ($form->validate($this)) :
-            $item = $this->parseFormElement($form, $item);
-            $item = $this->parseSubmittedFiles($item);
-            //TODO move to native collection beforeSave event?
-            $this->eventsManager->fire(get_class($this) . ':beforeModelSave', $this, $item);
-            $item->save();
-
-            if ($item->_('parentId')) :
-                Item::setFindPublished(false);
-                $parentItem = Item::findById($item->_('parentId'));
-                if ($parentItem) :
-                    $parentItem->set('hasChildren', true);
-                    $parentItem->save();
-                endif;
-            endif;
-
-            //TODO move to native collection afterSave event?
-            $this->afterSave($item);
-            //$this->cache->flush();
-
-            $this->log->write($item->getId(), get_class($item), 'Item saved');
-
-            $this->flash->setSucces('ADMIN_ITEM_SAVED');
-        endif;
-
-        $this->redirect($this->link . '/edit/' . $item->getId(), [], false);
-    }
-
     protected function getItemForm(?AbstractForm $form, AbstractCollection $item): ?AbstractForm
     {
         if ($form === null && $this->classForm !== null) :
@@ -478,182 +675,15 @@ trait TraitAdminControllerFunctions
     }
 
     /**
-     * @param AbstractCollection $item
-     */
-    public function beforeModelSave(AbstractCollection $item): void
-    {
-    }
-
-    /**
-     * @param AbstractCollection $item
-     */
-    public function afterSave(AbstractCollection $item): void
-    {
-    }
-
-    public function editAction(
-        string       $itemId = null,
-        string       $template = 'editForm',
-        string       $formTemplatePath = 'form/src/Resources/views/admin/',
-        AbstractForm $form = null
-    ): void
-    {
-        $adminEditForm = '';
-        /** @var AbstractCollection $item */
-        $item = new $this->class();
-        if ($itemId !== null) :
-            $this->class::setFindPublished(false);
-            $this->class::setRenderFields(false);
-            $item = $this->class::findById($itemId);
-        endif;
-
-        $this->eventsManager->fire(get_class($this) . ':beforeEdit', $this, $item);
-
-        $form = $this->getItemForm($form, $item);
-        if ($form !== null) :
-            $adminEditForm = $form->renderForm(
-                'admin/' . $this->router->getModuleName() . '/' . $this->router->getControllerName() . '/save/' . $itemId
-            );
-        endif;
-
-        $adminButtons = $this->eventsManager->fire(ViewEnum::RENDER_TEMPLATE_EVENT,new RenderTemplateDTO(
-            str_replace('admin', '', $this->router->getControllerName()) . 'Buttons',
-            $this->router->getModuleName() . '/src/Resources/views/admin/edit/',
-            ['editId' => $item->getId()]
-        ));
-
-        $this->view->setVar('content', $this->eventsManager->fire(ViewEnum::RENDER_TEMPLATE_EVENT,new RenderTemplateDTO(
-            $template,
-            $formTemplatePath,
-            array_merge([
-                'adminEditItem' => $item,
-                'adminButtons' => $adminButtons,
-                'adminEditForm' => $adminEditForm,
-            ], $this->renderParams)
-        )));
-
-        $this->prepareView();
-    }
-
-    public function deleteAction(): void
-    {
-        /** @var AbstractCollection $item */
-        $item = new $this->class();
-        $item::setFindPublished(false);
-        $item::setRenderFields(false);
-        $item = $item::findById($this->dispatcher->getParam(0));
-        if ($item) :
-            $this->eventsManager->fire(get_class($item) . ':beforeDelete', $item);
-            $item->beforeDelete();
-            $item->delete();
-            $item->afterDelete();
-            $this->eventsManager->fire(get_class($item) . ':afterDelete', $item);
-
-            if ($this->class !== Log::class) :
-                $this->log->write(
-                    $item->getId(),
-                    $this->class,
-                    $this->language->get('ADMIN_ITEM_DELETED', [$item->_('name')])
-                );
-            endif;
-
-            $this->flash->setSucces('ADMIN_ITEM_DELETED', [$item->_('name')]);
-
-            if ($item->hasParent()) :
-                $this->class::setFindValue('parentId', $item->getParentId());
-                $count = $this->class::count();
-                if ($count === 0) :
-                    $parent = $this->class::findById($item->getParentId());
-                    if($parent) :
-                        $parent->hasChildren = false;
-                        $parent->save();
-                    endif;
-                endif;
-            endif;
-        else :
-            $this->flash->setError('ADMIN_ITEM_NOT_FOUND');
-        endif;
-
-        $this->redirect($this->link . '/adminList');
-    }
-
-    public function copyAction(string $itemId): void
-    {
-        $this->class::setFindPublished(false);
-        $item = $this->class::findById($this->dispatcher->getParam(0));
-        $item->resetId();
-        $item->set('createdAt', date('Y-m-d H:i:s'));
-        $item->set('published', false);
-
-        $parsedLanguage = [];
-        foreach (Language::findAll() as $language) :
-            if (!in_array($language->_('short'), $parsedLanguage, true)) :
-                $item->set(
-                    'name',
-                    $item->_('name', $language->_('short')) . ' - copy',
-                    true,
-                    $language->_('short')
-                );
-                $parsedLanguage[] = $language->_('short');
-            endif;
-        endforeach;
-        $item->save();
-
-        $this->redirect($this->link . '/adminList');
-    }
-
-    public function togglePublishAction(): void
-    {
-        $logMessage = 'ADMIN_ITEM_PUBLISHED';
-
-        /** @var AbstractCollection $item */
-        $item = new $this->class();
-        $item::setFindPublished(false);
-        if (is_callable([$item, 'setRenderFields'])) :
-            $item::setRenderFields(false);
-        endif;
-        $item = $item::findById($this->dispatcher->getParam(0));
-
-        if ($item->_('published') === true) :
-            $item->set('published', false);
-            $logMessage = 'ADMIN_ITEM_UNPUBLISHED';
-            $this->flash->setSucces('ADMIN_ITEM_UNPUBLISHED');
-        else :
-            $item->set('published', true);
-            $this->flash->setSucces('ADMIN_ITEM_PUBLISHED');
-        endif;
-
-        $item->beforePublish();
-        $item->save();
-        $item->afterPublish();
-        $this->eventsManager->fire(get_class($this) . ':afterPublish', $this, $item);
-
-        $this->log->write($item->getId(), $this->class, $this->language->get($logMessage));
-
-        $this->redirect();
-    }
-
-    public function saveorderAction(): void
-    {
-        $ordering = (array)json_decode($this->request->get('ordering'));
-        $this->recursiveSaveOrder($ordering[0], $this->class);
-
-        $this->flash->setSucces('ADMIN_ORDERING_SAVED');
-
-        $this->redirect($this->link . '/adminList');
-    }
-
-    /**
      * @param array $ordering
      * @param string $object
      * @param string|null $parentId
      */
     protected function recursiveSaveOrder(
-        array  $ordering,
+        array $ordering,
         string $object,
         string $parentId = null
-    ): void
-    {
+    ): void {
         $orderNumber = 0;
         foreach ($ordering as $order) :
             if (isset($order->id)) :
@@ -678,21 +708,6 @@ trait TraitAdminControllerFunctions
                 endif;
             endif;
         endforeach;
-    }
-
-    public function addRenderParam(string $key, $value): void
-    {
-        $this->renderParams[$key] = $value;
-    }
-
-    public function isListSortable(): bool
-    {
-        return $this->listSortable;
-    }
-
-    public function getLink(): string
-    {
-        return $this->link;
     }
 
     /**
