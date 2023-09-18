@@ -1,7 +1,10 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace VitesseCms\Admin\Traits;
 
+use stdClass;
 use VitesseCms\Core\Utils\StringUtil;
 use VitesseCms\Database\AbstractCollection;
 use VitesseCms\Mustache\DTO\RenderTemplateDTO;
@@ -15,7 +18,7 @@ trait TraitAdminModelReadOnly
     {
         $model = $this->getModel($id);
 
-        if($model !== null) {
+        if ($model !== null) {
             $properties = get_class_vars($model::class);
             unset(
                 $properties['findValue'],
@@ -30,8 +33,8 @@ trait TraitAdminModelReadOnly
             );
             ksort($properties);
             $vars = [];
-            foreach($properties as $key => $property) {
-                if(isset($model->$key)) {
+            foreach ($properties as $key => $property) {
+                if (isset($model->$key)) {
                     $vars[] = [
                         'key' => ucfirst(StringUtil::camelCaseToSeperator($key)),
                         'value' => $this->getReadOnlyValue($key, $model)
@@ -39,16 +42,21 @@ trait TraitAdminModelReadOnly
                 }
             }
 
-            $this->viewService->setVar('content',
-                $this->eventsManager->fire(ViewEnum::RENDER_TEMPLATE_EVENT,new RenderTemplateDTO(
-                    'adminModelReadOnly',
-                    '',
-                    ['model' => $model, 'properties' => $vars]
-                )));
+            $this->viewService->setVar(
+                'content',
+                $this->eventsManager->fire(
+                    ViewEnum::RENDER_TEMPLATE_EVENT,
+                    new RenderTemplateDTO(
+                        'adminModelReadOnly',
+                        '',
+                        ['model' => $model, 'properties' => $vars]
+                    )
+                )
+            );
         }
     }
 
-    private function getReadOnlyValue(string $key, AbstractCollection $model):string
+    private function getReadOnlyValue(string $key, AbstractCollection $model): string
     {
         $class = $model::class;
         $value = $model->$key;
@@ -61,37 +69,10 @@ trait TraitAdminModelReadOnly
 
         return match ($key) {
             'fieldNames' => $this->parseFieldNames($model, $value),
-            'itemId' =>  $this->parseItemId($class,$value),
+            'itemId' => $this->parseItemId($class, (string)$value),
             'userId' => $this->parseUserId($value),
             default => (string)$value
-
         };
-    }
-
-    private function parseUserId(string $value): string
-    {
-        $user = $this->userRepository->getById($value, false);
-        if($user !== null) {
-            return $user->getNameField().' ( '.$value.' )';
-        }
-
-        return $value;
-    }
-
-    private function parseItemId(?string $class, string $value): string
-    {
-        if(!empty($class)) {
-            $eventTrigger = array_reverse(explode('\\',$class))[0].'Listener:getRepository';
-            $repository = $this->eventsManager->fire($eventTrigger, new \stdClass());
-            if($repository !== null) {
-                $item = $repository->getById($value, false);
-                if ($item !== null) {
-                    return $item->getNameField().' ( '.$value.' )';
-                }
-            }
-        }
-
-        return $value;
     }
 
     private function parseFieldNames(AbstractCollection $model, array $value): string
@@ -104,12 +85,39 @@ trait TraitAdminModelReadOnly
             ];
         }
 
-        if(count($data) === 0 ) {
+        if (count($data) === 0) {
             return '';
         }
 
-        return $this->eventsManager->fire(ViewEnum::RENDER_TEMPLATE_EVENT,
+        return $this->eventsManager->fire(
+            ViewEnum::RENDER_TEMPLATE_EVENT,
             new RenderTemplateDTO('FieldNamesTable', '', ['data' => $data])
         );
+    }
+
+    private function parseItemId(?string $class, string $value): string
+    {
+        if (!empty($class)) {
+            $eventTrigger = array_reverse(explode('\\', $class))[0] . 'Listener:getRepository';
+            $repository = $this->eventsManager->fire($eventTrigger, new stdClass());
+            if ($repository !== null) {
+                $item = $repository->getById($value, false);
+                if ($item !== null) {
+                    return $item->getNameField() . ' ( ' . $value . ' )';
+                }
+            }
+        }
+
+        return $value;
+    }
+
+    private function parseUserId(string $value): string
+    {
+        $user = $this->userRepository->getById($value, false);
+        if ($user !== null) {
+            return $user->getNameField() . ' ( ' . $value . ' )';
+        }
+
+        return $value;
     }
 }
