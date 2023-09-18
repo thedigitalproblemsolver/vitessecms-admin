@@ -1,7 +1,9 @@
-<?php declare(strict_types=1);
+<?php
+declare(strict_types=1);
 
 namespace VitesseCms\Admin\Traits;
 
+use stdClass;
 use VitesseCms\Language\Enums\LanguageEnum;
 
 trait TraitAdminModelDeletable
@@ -10,10 +12,10 @@ trait TraitAdminModelDeletable
 
     public function deleteAction(string $id): void
     {
-        $languageService = $this->eventsManager->fire(LanguageEnum::ATTACH_SERVICE_LISTENER->value, new \stdClass());
+        $languageService = $this->eventsManager->fire(LanguageEnum::ATTACH_SERVICE_LISTENER->value, new stdClass());
         $model = $this->getModel($id);
-        if($model !== null) {
-            if($this->eventsManager->fire(self::class.':validateDeleteAction',$model) !== false) {
+        if ($model !== null) {
+            if ($this->eventsManager->fire(self::class . ':validateDeleteAction', $model) !== false) {
                 $model->delete();
                 $this->logService->write(
                     $model->getId(),
