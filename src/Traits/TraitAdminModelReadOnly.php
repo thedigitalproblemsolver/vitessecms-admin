@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace VitesseCms\Admin\Traits;
@@ -68,36 +69,10 @@ trait TraitAdminModelReadOnly
 
         return match ($key) {
             'fieldNames' => $this->parseFieldNames($model, $value),
-            'itemId' => $this->parseItemId($class, $value),
-            'userId' => $this->parseUserId($value),
+            'itemId' => $this->parseItemId($class, (string)$value),
+            'userId' => $this->parseUserId((string)$value),
             default => (string)$value
         };
-    }
-
-    private function parseUserId(string $value): string
-    {
-        $user = $this->userRepository->getById($value, false);
-        if ($user !== null) {
-            return $user->getNameField() . ' ( ' . $value . ' )';
-        }
-
-        return $value;
-    }
-
-    private function parseItemId(?string $class, string $value): string
-    {
-        if (!empty($class)) {
-            $eventTrigger = array_reverse(explode('\\', $class))[0] . 'Listener:getRepository';
-            $repository = $this->eventsManager->fire($eventTrigger, new stdClass());
-            if ($repository !== null) {
-                $item = $repository->getById($value, false);
-                if ($item !== null) {
-                    return $item->getNameField() . ' ( ' . $value . ' )';
-                }
-            }
-        }
-
-        return $value;
     }
 
     private function parseFieldNames(AbstractCollection $model, array $value): string
@@ -118,5 +93,31 @@ trait TraitAdminModelReadOnly
             ViewEnum::RENDER_TEMPLATE_EVENT,
             new RenderTemplateDTO('FieldNamesTable', '', ['data' => $data])
         );
+    }
+
+    private function parseItemId(?string $class, string $value): string
+    {
+        if (!empty($class)) {
+            $eventTrigger = array_reverse(explode('\\', $class))[0] . 'Listener:getRepository';
+            $repository = $this->eventsManager->fire($eventTrigger, new stdClass());
+            if ($repository !== null) {
+                $item = $repository->getById($value, false);
+                if ($item !== null) {
+                    return $item->getNameField() . ' ( ' . $value . ' )';
+                }
+            }
+        }
+
+        return $value;
+    }
+
+    private function parseUserId(string $value): string
+    {
+        $user = $this->userRepository->getById($value, false);
+        if ($user !== null) {
+            return $user->getNameField() . ' ( ' . $value . ' )';
+        }
+
+        return $value;
     }
 }
