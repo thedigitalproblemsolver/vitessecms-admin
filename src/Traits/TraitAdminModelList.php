@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace VitesseCms\Admin\Traits;
@@ -6,6 +7,7 @@ namespace VitesseCms\Admin\Traits;
 use stdClass;
 use VitesseCms\Admin\Forms\AdminlistForm;
 use VitesseCms\Admin\Helpers\PaginationHelper;
+use VitesseCms\Admin\Models\AdminListButtonIterator;
 use VitesseCms\Database\Models\FindValue;
 use VitesseCms\Database\Models\FindValueIterator;
 use VitesseCms\Mustache\DTO\RenderTemplateDTO;
@@ -29,6 +31,9 @@ trait TraitAdminModelList
         );
 
         $this->eventsManager->fire(get_class($this) . ':adminListFilter', $this, $adminlistForm);
+
+        $buttons = new AdminListButtonIterator([]);
+        $this->eventsManager->fire(get_class($this) . ':adminListButtons', $buttons);
 
         $renderedModelList = $this->eventsManager->fire(
             ViewEnum::RENDER_TEMPLATE_EVENT,
@@ -59,6 +64,7 @@ trait TraitAdminModelList
                     [
                         'actionBaseUri' => $controllerUri,
                         'canAdd' => $aclService->hasAccess('add') && ($this->isAddable ?? false),
+                        'buttons' => $buttons,
                         'filterForm' => $adminlistForm->renderForm($controllerUri . '/adminlist', 'adminFilter'),
                         'list' => $renderedModelList
                     ]
