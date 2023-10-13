@@ -26,8 +26,7 @@ trait TraitAdminModelList
         $paginationHelper = new PaginationHelper(
             $this->getModelList($this->getFilterValues()),
             $this->urlService,
-            $this->request->get('offset', 'int', 0),
-            10
+            $this->request->get('offset', 'int', 0)
         );
 
         $this->eventsManager->fire(get_class($this) . ':adminListFilter', $this, $adminlistForm);
@@ -38,7 +37,7 @@ trait TraitAdminModelList
         $renderedModelList = $this->eventsManager->fire(
             ViewEnum::RENDER_TEMPLATE_EVENT,
             new RenderTemplateDTO(
-                'adminModelListWithPagination',
+                $this->adminListWithPaginationTemplate(),
                 '',
                 [
                     'pagination' => $paginationHelper,
@@ -119,5 +118,10 @@ trait TraitAdminModelList
         $this->session->set($sessionKey, $this->request->getPost('filter'));
 
         return $this->request->getPost('filter');
+    }
+
+    protected function adminListWithPaginationTemplate(): string
+    {
+        return 'adminModelListWithPagination';
     }
 }
