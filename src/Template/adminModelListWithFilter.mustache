@@ -5,11 +5,18 @@
         </div>
         <div class="col-12 col-lg-3">
             <div class="btn-group float-right">
+                {{#buttons}}
+                    <a
+                            class="{{cssClass}}"
+                            href="{{href}}"
+                            title="{{title}}"
+                    ></a>
+                {{/buttons}}
                 {{#canAdd}}
                     <a
-                        class="btn btn-info fa fa-plus openmodal"
-                        href="{{actionBaseUri}}/add/"
-                        title="%ADMIN_NEW_ITEM%"
+                            class="btn btn-info fa fa-plus openmodal"
+                            href="{{actionBaseUri}}/add/"
+                            title="%ADMIN_NEW_ITEM%"
                     ></a>
                 {{/canAdd}}
             </div>

@@ -1,4 +1,5 @@
-<?php declare(strict_types=1);
+<?php
+declare(strict_types=1);
 
 namespace VitesseCms\Admin\Forms;
 
@@ -14,8 +15,11 @@ class AdminlistForm extends AbstractForm implements AdminlistFormInterface
         string $formName = null,
         bool $noAjax = false,
         bool $newWindow = false
-    ): string
-    {
+    ): string {
+        if ($this->count($this->getElements()) === 0) {
+            return '';
+        }
+
         $this->setColumn(12, 'label', UiUtils::getScreens());
         $this->setColumn(12, 'input', UiUtils::getScreens());
         $this->setAjaxFunction('admin.fillAdminList');

@@ -1,7 +1,9 @@
-<?php declare(strict_types=1);
+<?php
+declare(strict_types=1);
 
 namespace VitesseCms\Admin\Utils;
 
+use Phalcon\Events\Manager;
 use VitesseCms\Admin\Models\AdminMenu;
 use VitesseCms\Admin\Models\AdminMenuGroup;
 use VitesseCms\Admin\Models\AdminMenuGroupIterator;
@@ -10,7 +12,6 @@ use VitesseCms\Core\Forms\AdminToolbarForm;
 use VitesseCms\Datagroup\Repositories\DatagroupRepository;
 use VitesseCms\User\Models\User;
 use VitesseCms\User\Utils\PermissionUtils;
-use Phalcon\Events\Manager;
 
 class AdminUtil
 {
@@ -41,18 +42,20 @@ class AdminUtil
 
     public static function isAdminPage(): bool
     {
-        return !(substr_count($_SERVER['REQUEST_URI']??'', 'admin/') === 0);
+        return !(substr_count($_SERVER['REQUEST_URI'] ?? '', 'admin/') === 0);
     }
 
     public function getToolbar(): array
     {
         $adminGroupIterator = new AdminMenuGroupIterator();
         foreach (SystemEnum::COMPONENTS as $key => $label) :
-            $adminGroupIterator->add(new AdminMenuGroup(
-                $label,
-                $key,
-                $this->datagroupRepository->getBySystemComponent($key)
-            ));
+            $adminGroupIterator->add(
+                new AdminMenuGroup(
+                    $label,
+                    $key,
+                    $this->datagroupRepository->getBySystemComponent($key)
+                )
+            );
         endforeach;
 
         $adminMenu = new AdminMenu([], $adminGroupIterator);
@@ -78,7 +81,7 @@ class AdminUtil
                     $path = explode('/', $child['slug']);
                     if (
                         'superadmin' !== $this->user->getPermissionRole() &&
-                        !PermissionUtils::check($this->user, $path[1], $path[2], $path[3])
+                        !PermissionUtils::check($this->user, $path[1], $path[2], $path[3] ?? '')
                     ) :
                         unset($parent['children'][$childIndex]);
                     endif;

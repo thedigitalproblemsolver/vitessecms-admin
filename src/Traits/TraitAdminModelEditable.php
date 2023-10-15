@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace VitesseCms\Admin\Traits;
 
@@ -17,14 +19,32 @@ trait TraitAdminModelEditable
         $modelForm = $this->getModelForm();
         $modelForm->setEntity($this->getModel($id));
         $modelForm->buildForm();
-        $this->addFormParams('form', $modelForm->renderForm(
-            $this->urlService->getBaseUri().'admin/' . $this->router->getModuleName() . '/' . $this->router->getControllerName() . '/save/'.$id
-        ));
-        $this->viewService->set('content', $this->eventsManager->fire(ViewEnum::RENDER_TEMPLATE_EVENT,new RenderTemplateDTO(
-            $this->getTemplate(),
-            $this->getTemplatePath(),
-            $this->formParams
-        )));
+        $this->eventsManager->fire(self::class . ':beforeEditModel', $this, $modelForm->getEntity());
+        $this->addFormParams(
+            'form',
+            $modelForm->renderForm(
+                $this->urlService->getBaseUri() . 'admin/' . $this->router->getModuleName(
+                ) . '/' . $this->router->getControllerName() . '/save/' . $id
+            )
+        );
+        $this->addFormParams('model', $modelForm->getEntity());
+
+        $this->viewService->set(
+            'content',
+            $this->eventsManager->fire(
+                ViewEnum::RENDER_TEMPLATE_EVENT,
+                new RenderTemplateDTO(
+                    $this->getTemplate(),
+                    $this->getTemplatePath(),
+                    $this->formParams
+                )
+            )
+        );
+    }
+
+    public function addFormParams(string $key, $value)
+    {
+        $this->formParams[$key] = $value;
     }
 
     protected function getTemplate(): string
@@ -35,9 +55,5 @@ trait TraitAdminModelEditable
     protected function getTemplatePath(): string
     {
         return '';
-    }
-
-    protected function addFormParams(string $key, $value) {
-        $this->formParams[$key] = $value;
     }
 }
