@@ -1,16 +1,15 @@
 <?php
+
 declare(strict_types=1);
 
 namespace VitesseCms\Admin\Traits;
 
-use MongoDB\BSON\ObjectId;
 use Phalcon\Exception;
 use Phalcon\Forms\Element\Check;
 use Phalcon\Forms\Element\Numeric;
 use Phalcon\Forms\Element\Select;
 use Phalcon\Forms\Element\Text;
 use Phalcon\Http\Request;
-use Phalcon\Incubator\MongoDB\Mvc\Collection;
 use ReflectionClass;
 use VitesseCms\Admin\Forms\AdminlistForm;
 use VitesseCms\Admin\Utils\AdminListUtil;
@@ -25,11 +24,8 @@ use VitesseCms\Datagroup\Models\Datagroup;
 use VitesseCms\Form\AbstractForm;
 use VitesseCms\Form\Helpers\ElementHelper;
 use VitesseCms\Language\Models\Language;
-use stdClass;
-use VitesseCms\Mustache\Enum\ViewEnum;
 use VitesseCms\Mustache\DTO\RenderTemplateDTO;
-
-use const pcov\version;
+use VitesseCms\Mustache\Enum\ViewEnum;
 
 /**
  * @deprecated make use of seperate traits and AbstractControllerAdmin
@@ -148,6 +144,179 @@ trait TraitAdminControllerFunctions
         $this->prepareView();
     }
 
+    protected function recursiveAdminList(Pagination $pagination, int $level = 0): string
+    {
+        $params = [
+            'id' => false,
+            'ajaxurl' => false,
+            'class' => 'list-group admin-list',
+            'listSortable' => false,
+        ];
+        $templatePath = $this->configuration->getVendorNameDir() . 'admin/src/Resources/views/admin';
+        if ($level === 0 && $this->listSortable) :
+            $params = [
+                'id' => uniqid('item-', false),
+                'ajaxurl' => 'admin' . '/' .
+                    $this->router->getModuleName() . '/' .
+                    $this->router->getControllerName() . '/' .
+                    'saveorder',
+                'class' => 'list-group admin-list sortable',
+                'listSortable' => true,
+            ];
+        endif;
+
+        $return = $this->view->renderTemplate('recursiveAdminListStart', $templatePath, $params);
+
+        /** @var AbstractCollection $item */
+        foreach ($pagination->getItems() as $item) :
+            $this->eventsManager->fire($this->controllerName . ':adminListItem', $this, $item);
+
+            $return .= $this->view->renderTemplate(
+                'recursiveAdminListItemStart',
+                $templatePath,
+                [
+                    'item' => $item,
+                    'adminListButtons' => AdminListUtil::getAdminListButtons(
+                        $item,
+                        str_replace($this->url->getBaseUri(), '', $this->link),
+                        $this->acl
+                    ),
+                    'adminListRowClass' => ItemHelper::getRowStateClass($item->isPublished()),
+                    'adminListName' => $item->getAdminlistName(),
+                    'editBaseUri' => $this->link,
+                    'adminListExtra' => $item->getAdminListExtra(),
+                ]
+            );
+
+            if ($item->hasChildren() && $this->configuration->renderAdminListChildren()) :
+                if ($item->_('datagroup')) :
+                    Datagroup::setFindValue('parentId', $item->_('datagroup'));
+                    $datagroup = Datagroup::findFirst();
+                    if ($datagroup && $datagroup->_('itemOrdering')) :
+                        switch ($datagroup->_('itemOrdering')) :
+                            case 'createdAt':
+                                $item::addFindOrder($datagroup->_('itemOrdering'), -1);
+                                break;
+                            default:
+                                $item::addFindOrder($datagroup->_('itemOrdering'), 1);
+                                break;
+                        endswitch;
+                    endif;
+                endif;
+                $childPagination = $this->getAdminListPagination((string)$item->getId());
+
+                $return .= $this->recursiveAdminList($childPagination, $level + 1);
+            elseif ($this->listNestable):
+                $return .= '<ol></ol>';
+            endif;
+            $return .= $this->view->renderTemplate('recursiveAdminListItemEnd', $templatePath);
+        endforeach;
+
+        if ($pagination->getTotalPages() > 1) :
+            $return .= $this->view->renderTemplate(
+                'recursiveAdminListPagination',
+                $templatePath,
+                ['pagination' => $pagination]
+            );
+        endif;
+
+        $return .= $this->view->renderTemplate('recursiveAdminListEnd', $templatePath);
+
+        return $return;
+    }
+
+    /**
+     * @param AbstractCollection $item
+     *
+     * @return string
+     *
+     * @deprecated wordt deze nog gebruikt? Anders mag hij weg
+     */
+    protected function getAdminlistName(AbstractCollection $item): string
+    {
+        return $item->getAdminlistName();
+    }
+
+    protected function getAdminListPagination(?string $parentId = null): Pagination
+    {
+        /** @var AbstractCollection $item */
+        $item = new $this->class();
+        if ($parentId === null) :
+            $this->applyFilter($item);
+            $item::setFindParseFilter(true);
+        endif;
+        $item::setFindPublished(false);
+        $item::addFindOrder($this->listOrder, $this->listOrderDirection);
+        $item::setRenderFields(false);
+        $item::setFindLimit(999);
+        if ($parentId !== null) :
+            $item::setFindValue('parentId', $parentId);
+        endif;
+        $items = $item::findAll();
+
+        if (count($items) === 0) :
+            $this->flash->setError('ADMIN_NO_ITEMS_FOUND');
+        endif;
+
+        return PaginationFactory::createFromArray(
+            $items,
+            $this->request,
+            $this->url,
+            'page_' . $parentId
+        );
+    }
+
+    protected function applyFilter(AbstractCollection $item): void
+    {
+        $filter = [];
+
+        if (
+            is_array($this->request->get('filter'))
+            && !empty($this->request->get('filter'))
+        ):
+            $resetSortable = false;
+            foreach ($this->request->get('filter') as $filterName => $filterValue) :
+                if (!empty($filterValue)) :
+                    $filter[$filterName] = trim($filterValue);
+                    $resetSortable = true;
+                endif;
+            endforeach;
+            $this->session->set('filter_' . $this->class, $filter);
+            if ($resetSortable) :
+                $this->listSortable = false;
+                $this->listNestable = false;
+            endif;
+        elseif (
+            is_array($this->session->get('filter_' . $this->class))
+            && !empty($this->session->get('filter_' . $this->class))
+        ) :
+            $_REQUEST['filter'] = $filter = $this->session->get('filter_' . $this->class);
+            $this->listSortable = false;
+            $this->listNestable = false;
+        else :
+            $item::setFindValue('parentId', ['$in' => ['', null]]);
+        endif;
+
+        if (count($filter) > 1 && isset($filter['datagroup'])) :
+            $datagroup = Datagroup::findById($this->request->get('filter')['datagroup']);
+            if ($datagroup->_('itemOrdering')) :
+                $this->listOrder = $datagroup->_('itemOrdering');
+            endif;
+
+            if ($datagroup->_('sortable')) :
+                $this->listSortable = true;
+                $this->listNestable = true;
+            endif;
+
+            $datagroups = [];
+            $datagroupChildren = DatagroupHelper::getChildrenFromRoot($datagroup);
+            foreach ($datagroupChildren as $datagroupChild) :
+                $datagroups[] = (string)$datagroupChild->getId();
+            endforeach;
+            $item::setFindValue('datagroup', ['$in' => $datagroups]);
+        endif;
+    }
+
     public function saveAction(?string $itemId = null, AbstractCollection $item = null, AbstractForm $form = null): void
     {
         /** @deprecated item should be passes in controller */
@@ -195,17 +364,145 @@ trait TraitAdminControllerFunctions
         $this->redirect($this->link . '/edit/' . $item->getId(), [], false);
     }
 
+    protected function getItemForm(?AbstractForm $form, AbstractCollection $item): ?AbstractForm
+    {
+        if ($form === null && $this->classForm !== null) :
+            /** @var AbstractForm $form */
+            $form = new $this->classForm($item);
+        endif;
+
+        if ($form !== null) :
+            $form->setEntity($item);
+            if (method_exists($form, 'setRepositories')) :
+                $form->setRepositories($this->repositories);
+            endif;
+            if (method_exists($form, 'buildForm')) :
+                $form->buildForm();
+            endif;
+        endif;
+
+        return $form;
+    }
+
+    /**\
+     * @param AbstractForm $form
+     * @param AbstractCollection $item
+     *
+     * @return AbstractCollection
+     */
+    protected function parseFormElement(AbstractForm $form, AbstractCollection $item): AbstractCollection
+    {
+        foreach ($form->getElements() as $element) :
+            switch (get_class($element)) :
+                case Check::class:
+                    if ($this->request->getPost($element->getName()) === null) :
+                        $item->set($element->getName(), null);
+                    endif;
+                    break;
+                case Numeric::class:
+                    if (is_array($element->getValue())) :
+                        $values = (array)$element->getValue();
+                        foreach ($values as $key => $value) :
+                            $values[$key] = (float)$value;
+                        endforeach;
+                        $item->set($element->getName(), $values);
+                    else :
+                        $item->set($element->getName(), (float)$element->getValue());
+                    endif;
+                    break;
+                case Select::class:
+                    if ($element->getAttribute('multiple')) :
+                        $fieldName = str_replace('[]', '', $element->getName());
+                        $post = (new Request())->getPost();
+
+                        if (isset($post[$fieldName])) :
+                            $item->set($fieldName, $post[$fieldName]);
+                        else :
+                            $item->set($fieldName, null);
+                        endif;
+
+                        if ($element->getAttribute('multilang')) :
+                            $values = $item->getRaw($fieldName);
+                            if (empty($values)) :
+                                $values = [];
+                            endif;
+                            foreach (Language::findAll() as $language) :
+                                if (!isset($values[$language->_('short')])) :
+                                    $values[$language->_('short')] = [];
+                                endif;
+                            endforeach;
+                            $item->set($fieldName, $values);
+                        endif;
+                    elseif (
+                        !empty($element->getValue())
+                        && substr_count($element->getName(), '[') > 0
+                        && substr_count($element->getName(), ']') > 0
+                    ) :
+                        $index = ElementHelper::parseTextNameAttribute($element->getName());
+                        $item->add($index[0], $element->getValue(), $index[1]);
+                    endif;
+                    break;
+                case Text::class:
+                    if (
+                        !empty($element->getValue())
+                        && substr_count($element->getName(), '[') > 0
+                        && substr_count($element->getName(), ']') > 0
+                    ) :
+                        $index = ElementHelper::parseTextNameAttribute($element->getName());
+                        $item->add($index[0], $element->getValue(), $index[1]);
+                    endif;
+                    break;
+            endswitch;
+        endforeach;
+
+        return $item;
+    }
+
     /**
      * @param AbstractCollection $item
+     *
+     * @return AbstractCollection
+     * @throws Exception
      */
-    public function beforeModelSave(AbstractCollection $item): void
+    protected function parseSubmittedFiles(AbstractCollection $item): AbstractCollection
     {
+        if ($this->request->hasFiles() === true) :
+            foreach ($this->request->getUploadedFiles() as $file) :
+                if (!empty($file->getName())) :
+                    $name = FileUtil::sanatize($file->getName());
+                    if ($file->moveTo($this->config->get('uploadDir') . $name)) :
+                        $key = $file->getKey();
+                        if (substr_count($key, '.') > 0) :
+                            $tmp = explode('.', $key);
+                            $valueName = $tmp[0];
+                            if (!is_array($item->$valueName)) :
+                                $item->$valueName = [];
+                            endif;
+                            $item->$valueName[$tmp[1]] = $name;
+                        else :
+                            $item->$key = $name;
+                        endif;
+                    else :
+                        $this->flash->setError('FILE_UPLOAD_FAILED', [$file->getName()]);
+                    endif;
+                endif;
+            endforeach;
+        endif;
+
+        return $item;
     }
 
     /**
      * @param AbstractCollection $item
      */
     public function afterSave(AbstractCollection $item): void
+    {
+    }
+
+    /**
+     * @param AbstractCollection $item
+     */
+    public function beforeModelSave(AbstractCollection $item): void
     {
     }
 
@@ -370,310 +667,6 @@ trait TraitAdminControllerFunctions
         $this->redirect($this->link . '/adminList');
     }
 
-    public function addRenderParam(string $key, $value): void
-    {
-        $this->renderParams[$key] = $value;
-    }
-
-    public function isListSortable(): bool
-    {
-        return $this->listSortable;
-    }
-
-    public function getLink(): string
-    {
-        return $this->link;
-    }
-
-    protected function recursiveAdminList(Pagination $pagination, int $level = 0): string
-    {
-        $params = [
-            'id' => false,
-            'ajaxurl' => false,
-            'class' => 'list-group admin-list',
-            'listSortable' => false,
-        ];
-        $templatePath = $this->configuration->getVendorNameDir() . 'admin/src/Resources/views/admin';
-        if ($level === 0 && $this->listSortable) :
-            $params = [
-                'id' => uniqid('item-', false),
-                'ajaxurl' => 'admin' . '/' .
-                    $this->router->getModuleName() . '/' .
-                    $this->router->getControllerName() . '/' .
-                    'saveorder',
-                'class' => 'list-group admin-list sortable',
-                'listSortable' => true,
-            ];
-        endif;
-
-        $return = $this->view->renderTemplate('recursiveAdminListStart', $templatePath, $params);
-
-        /** @var AbstractCollection $item */
-        foreach ($pagination->getItems() as $item) :
-            $this->eventsManager->fire($this->controllerName . ':adminListItem', $this, $item);
-
-            $return .= $this->view->renderTemplate(
-                'recursiveAdminListItemStart',
-                $templatePath,
-                [
-                    'item' => $item,
-                    'adminListButtons' => AdminListUtil::getAdminListButtons(
-                        $item,
-                        str_replace($this->url->getBaseUri(), '', $this->link),
-                        $this->acl
-                    ),
-                    'adminListRowClass' => ItemHelper::getRowStateClass($item->isPublished()),
-                    'adminListName' => $item->getAdminlistName(),
-                    'editBaseUri' => $this->link,
-                    'adminListExtra' => $item->getAdminListExtra(),
-                ]
-            );
-
-            if ($item->hasChildren() && $this->configuration->renderAdminListChildren()) :
-                if ($item->_('datagroup')) :
-                    Datagroup::setFindValue('parentId', $item->_('datagroup'));
-                    $datagroup = Datagroup::findFirst();
-                    if ($datagroup && $datagroup->_('itemOrdering')) :
-                        switch ($datagroup->_('itemOrdering')) :
-                            case 'createdAt':
-                                $item::addFindOrder($datagroup->_('itemOrdering'), -1);
-                                break;
-                            default:
-                                $item::addFindOrder($datagroup->_('itemOrdering'), 1);
-                                break;
-                        endswitch;
-                    endif;
-                endif;
-                $childPagination = $this->getAdminListPagination((string)$item->getId());
-
-                $return .= $this->recursiveAdminList($childPagination, $level + 1);
-            elseif ($this->listNestable):
-                $return .= '<ol></ol>';
-            endif;
-            $return .= $this->view->renderTemplate('recursiveAdminListItemEnd', $templatePath);
-        endforeach;
-
-        if ($pagination->getTotalPages() > 1) :
-            $return .= $this->view->renderTemplate(
-                'recursiveAdminListPagination',
-                $templatePath,
-                ['pagination' => $pagination]
-            );
-        endif;
-
-        $return .= $this->view->renderTemplate('recursiveAdminListEnd', $templatePath);
-
-        return $return;
-    }
-
-    protected function getAdminListPagination(?string $parentId = null): Pagination
-    {
-        /** @var AbstractCollection $item */
-        $item = new $this->class();
-        if ($parentId === null) :
-            $this->applyFilter($item);
-            $item::setFindParseFilter(true);
-        endif;
-        $item::setFindPublished(false);
-        $item::addFindOrder($this->listOrder, $this->listOrderDirection);
-        $item::setRenderFields(false);
-        $item::setFindLimit(999);
-        if ($parentId !== null) :
-            $item::setFindValue('parentId', $parentId);
-        endif;
-        $items = $item::findAll();
-
-        if (count($items) === 0) :
-            $this->flash->setError('ADMIN_NO_ITEMS_FOUND');
-        endif;
-
-        return PaginationFactory::createFromArray(
-            $items,
-            $this->request,
-            $this->url,
-            'page_' . $parentId
-        );
-    }
-
-    protected function applyFilter(AbstractCollection $item): void
-    {
-        $filter = [];
-
-        if (
-            is_array($this->request->get('filter'))
-            && !empty($this->request->get('filter'))
-        ):
-            $resetSortable = false;
-            foreach ($this->request->get('filter') as $filterName => $filterValue) :
-                if (!empty($filterValue)) :
-                    $filter[$filterName] = trim($filterValue);
-                    $resetSortable = true;
-                endif;
-            endforeach;
-            $this->session->set('filter_' . $this->class, $filter);
-            if ($resetSortable) :
-                $this->listSortable = false;
-                $this->listNestable = false;
-            endif;
-        elseif (
-            is_array($this->session->get('filter_' . $this->class))
-            && !empty($this->session->get('filter_' . $this->class))
-        ) :
-            $_REQUEST['filter'] = $filter = $this->session->get('filter_' . $this->class);
-            $this->listSortable = false;
-            $this->listNestable = false;
-        else :
-            $item::setFindValue('parentId', ['$in' => ['', null]]);
-        endif;
-
-        if (count($filter) > 1 && isset($filter['datagroup'])) :
-            $datagroup = Datagroup::findById($this->request->get('filter')['datagroup']);
-            if ($datagroup->_('itemOrdering')) :
-                $this->listOrder = $datagroup->_('itemOrdering');
-            endif;
-
-            if ($datagroup->_('sortable')) :
-                $this->listSortable = true;
-                $this->listNestable = true;
-            endif;
-
-            $datagroups = [];
-            $datagroupChildren = DatagroupHelper::getChildrenFromRoot($datagroup);
-            foreach ($datagroupChildren as $datagroupChild) :
-                $datagroups[] = (string)$datagroupChild->getId();
-            endforeach;
-            $item::setFindValue('datagroup', ['$in' => $datagroups]);
-        endif;
-    }
-
-    protected function getItemForm(?AbstractForm $form, AbstractCollection $item): ?AbstractForm
-    {
-        if ($form === null && $this->classForm !== null) :
-            /** @var AbstractForm $form */
-            $form = new $this->classForm($item);
-        endif;
-
-        if ($form !== null) :
-            $form->setEntity($item);
-            if (method_exists($form, 'setRepositories')) :
-                $form->setRepositories($this->repositories);
-            endif;
-            if (method_exists($form, 'buildForm')) :
-                $form->buildForm();
-            endif;
-        endif;
-
-        return $form;
-    }
-
-    /**\
-     * @param AbstractForm $form
-     * @param AbstractCollection $item
-     *
-     * @return AbstractCollection
-     */
-    protected function parseFormElement(AbstractForm $form, AbstractCollection $item): AbstractCollection
-    {
-        foreach ($form->getElements() as $element) :
-            switch (get_class($element)) :
-                case Check::class:
-                    if ($this->request->getPost($element->getName()) === null) :
-                        $item->set($element->getName(), null);
-                    endif;
-                    break;
-                case Numeric::class:
-                    if (is_array($element->getValue())) :
-                        $values = (array)$element->getValue();
-                        foreach ($values as $key => $value) :
-                            $values[$key] = (float)$value;
-                        endforeach;
-                        $item->set($element->getName(), $values);
-                    else :
-                        $item->set($element->getName(), (float)$element->getValue());
-                    endif;
-                    break;
-                case Select::class:
-                    if ($element->getAttribute('multiple')) :
-                        $fieldName = str_replace('[]', '', $element->getName());
-                        $post = (new Request())->getPost();
-
-                        if (isset($post[$fieldName])) :
-                            $item->set($fieldName, $post[$fieldName]);
-                        else :
-                            $item->set($fieldName, null);
-                        endif;
-
-                        if ($element->getAttribute('multilang')) :
-                            $values = $item->getRaw($fieldName);
-                            if (empty($values)) :
-                                $values = [];
-                            endif;
-                            foreach (Language::findAll() as $language) :
-                                if (!isset($values[$language->_('short')])) :
-                                    $values[$language->_('short')] = [];
-                                endif;
-                            endforeach;
-                            $item->set($fieldName, $values);
-                        endif;
-                    elseif (
-                        !empty($element->getValue())
-                        && substr_count($element->getName(), '[') > 0
-                        && substr_count($element->getName(), ']') > 0
-                    ) :
-                        $index = ElementHelper::parseTextNameAttribute($element->getName());
-                        $item->add($index[0], $element->getValue(), $index[1]);
-                    endif;
-                    break;
-                case Text::class:
-                    if (
-                        !empty($element->getValue())
-                        && substr_count($element->getName(), '[') > 0
-                        && substr_count($element->getName(), ']') > 0
-                    ) :
-                        $index = ElementHelper::parseTextNameAttribute($element->getName());
-                        $item->add($index[0], $element->getValue(), $index[1]);
-                    endif;
-                    break;
-            endswitch;
-        endforeach;
-
-        return $item;
-    }
-
-    /**
-     * @param AbstractCollection $item
-     *
-     * @return AbstractCollection
-     * @throws Exception
-     */
-    protected function parseSubmittedFiles(AbstractCollection $item): AbstractCollection
-    {
-        if ($this->request->hasFiles() === true) :
-            foreach ($this->request->getUploadedFiles() as $file) :
-                if (!empty($file->getName())) :
-                    $name = FileUtil::sanatize($file->getName());
-                    if ($file->moveTo($this->config->get('uploadDir') . $name)) :
-                        $key = $file->getKey();
-                        if (substr_count($key, '.') > 0) :
-                            $tmp = explode('.', $key);
-                            $valueName = $tmp[0];
-                            if (!is_array($item->$valueName)) :
-                                $item->$valueName = [];
-                            endif;
-                            $item->$valueName[$tmp[1]] = $name;
-                        else :
-                            $item->$key = $name;
-                        endif;
-                    else :
-                        $this->flash->setError('FILE_UPLOAD_FAILED', [$file->getName()]);
-                    endif;
-                endif;
-            endforeach;
-        endif;
-
-        return $item;
-    }
-
     /**
      * @param array $ordering
      * @param string $object
@@ -710,15 +703,18 @@ trait TraitAdminControllerFunctions
         endforeach;
     }
 
-    /**
-     * @param AbstractCollection $item
-     *
-     * @return string
-     *
-     * @deprecated wordt deze nog gebruikt? Anders mag hij weg
-     */
-    protected function getAdminlistName(AbstractCollection $item): string
+    public function addRenderParam(string $key, $value): void
     {
-        return $item->getAdminlistName();
+        $this->renderParams[$key] = $value;
+    }
+
+    public function isListSortable(): bool
+    {
+        return $this->listSortable;
+    }
+
+    public function getLink(): string
+    {
+        return $this->link;
     }
 }

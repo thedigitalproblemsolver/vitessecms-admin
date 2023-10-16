@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace VitesseCms\Admin\Traits;
 
@@ -12,24 +14,28 @@ trait TraitAdminModelSave
         $modelForm->setEntity($this->getModel($id));
         $modelForm->buildForm();
         $modelForm->bind($this->request->getPost());
-        if($modelForm->validate()) {
+
+        if ($modelForm->validate()) {
             $redirectId = $this->saveModel($modelForm);
         } else {
             $this->flashService->setError('ADMIN_ITEM_NOT_SAVED');
             $redirectId = $id;
         }
 
-        $this->redirect($this->urlService->getBaseUri().'admin/' . $this->routerService->getModuleName() . '/' . $this->routerService->getControllerName() . '/edit/'.$redirectId);
+        $this->redirect(
+            $this->urlService->getBaseUri() . 'admin/' . $this->routerService->getModuleName(
+            ) . '/' . $this->routerService->getControllerName() . '/edit/' . $redirectId
+        );
     }
 
-    private function saveModel(AdminModelFormInterface $modelForm):string
+    private function saveModel(AdminModelFormInterface $modelForm): string
     {
         $model = $modelForm->getEntity();
-        $this->eventsManager->fire(self::class.':beforeSaveModel',$model);
+        $this->eventsManager->fire(self::class . ':beforeSaveModel', $model);
         $model->save();
         $this->logService->write($model->getId(), get_class($model), 'Item saved');
         $this->flashService->setSucces('ADMIN_ITEM_SAVED');
 
-        return (string) $model->getId();
+        return (string)$model->getId();
     }
 }
