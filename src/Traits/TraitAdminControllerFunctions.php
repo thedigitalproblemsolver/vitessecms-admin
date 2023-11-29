@@ -373,7 +373,7 @@ trait TraitAdminControllerFunctions
 
         if ($form !== null) :
             $form->setEntity($item);
-            if (method_exists($form, 'setRepositories')) :
+            if (method_exists($form, 'setRepositories') && isset($this->repositories)) :
                 $form->setRepositories($this->repositories);
             endif;
             if (method_exists($form, 'buildForm')) :
