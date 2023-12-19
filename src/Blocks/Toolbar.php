@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace VitesseCms\Admin\Blocks;
 
@@ -6,21 +8,26 @@ use VitesseCms\Admin\Utils\AdminUtil;
 use VitesseCms\Block\AbstractBlockModel;
 use VitesseCms\Block\Models\Block;
 use VitesseCms\Datagroup\Repositories\DatagroupRepository;
+use VitesseCms\Mustache\DTO\RenderPartialDTO;
+use VitesseCms\Mustache\Enum\ViewEnum;
 
 class Toolbar extends AbstractBlockModel
 {
     public function getTemplateParams(Block $block): array
     {
         $params = parent::getTemplateParams($block);
-        $params['toolbar'] = $this->view->renderTemplate(
-            'navbar',
-            'partials',
-            ['navbar' => (new AdminUtil(
-                $this->getDi()->get('user'),
-                $this->getDi()->get('eventsManager'),
-                new DatagroupRepository()
-            ))->getToolbar()
-            ]
+        $params['toolbar'] = $this->di->get('eventsManager')->fire(
+            ViewEnum::RENDER_PARTIAL_EVENT,
+            new RenderPartialDTO(
+                'navbar',
+                [
+                    'navbar' => (new AdminUtil(
+                        $this->getDi()->get('user'),
+                        $this->getDi()->get('eventsManager'),
+                        new DatagroupRepository()
+                    ))->getToolbar()
+                ]
+            )
         );
 
         return $params;
