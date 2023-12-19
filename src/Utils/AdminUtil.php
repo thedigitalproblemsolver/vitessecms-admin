@@ -1,43 +1,26 @@
 <?php
+
 declare(strict_types=1);
 
 namespace VitesseCms\Admin\Utils;
 
 use Phalcon\Events\Manager;
+use VitesseCms\Admin\Forms\AdminToolbarForm;
 use VitesseCms\Admin\Models\AdminMenu;
 use VitesseCms\Admin\Models\AdminMenuGroup;
 use VitesseCms\Admin\Models\AdminMenuGroupIterator;
 use VitesseCms\Core\Enum\SystemEnum;
-use VitesseCms\Core\Forms\AdminToolbarForm;
 use VitesseCms\Datagroup\Repositories\DatagroupRepository;
 use VitesseCms\User\Models\User;
 use VitesseCms\User\Utils\PermissionUtils;
 
 class AdminUtil
 {
-    /**
-     * @var User
-     */
-    protected $user;
-
-    /**
-     * @var Manager
-     */
-    protected $eventsManager;
-
-    /**
-     * @var DatagroupRepository
-     */
-    protected $datagroupRepository;
-
     public function __construct(
-        User $user,
-        Manager $eventsManager,
-        DatagroupRepository $datagroupRepository
+        private readonly User $user,
+        private readonly Manager $eventsManager,
+        private readonly DatagroupRepository $datagroupRepository
     ) {
-        $this->user = $user;
-        $this->eventsManager = $eventsManager;
-        $this->datagroupRepository = $datagroupRepository;
     }
 
     public static function isAdminPage(): bool
