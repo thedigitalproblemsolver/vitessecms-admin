@@ -354,7 +354,7 @@ trait TraitAdminControllerFunctions
 
             //TODO move to native collection afterSave event?
             $this->afterSave($item);
-            //$this->cache->flush();
+            $this->eventsManager->fire(get_class($this) . ':afterModelSave', $this, $item);
 
             $this->log->write($item->getId(), get_class($item), 'Item saved');
 
@@ -494,6 +494,7 @@ trait TraitAdminControllerFunctions
 
     /**
      * @param AbstractCollection $item
+     * @deprecated use event instead of funtion
      */
     public function afterSave(AbstractCollection $item): void
     {
@@ -501,6 +502,7 @@ trait TraitAdminControllerFunctions
 
     /**
      * @param AbstractCollection $item
+     * @deprecated use event instead of funtion
      */
     public function beforeModelSave(AbstractCollection $item): void
     {
