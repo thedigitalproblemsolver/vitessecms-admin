@@ -19,7 +19,7 @@ class AdminMenu
 
     public function addDropdown(string $name, AdminMenuNavBarChildren $children): AdminMenu
     {
-        if (!isset($this->navbarItems[$name])) :
+        if (!isset($this->navbarItems[$name])) {
             $this->navbarItems[$name] = (new AdminMenuNavBarItem(
                 $name,
                 '#',
@@ -27,10 +27,10 @@ class AdminMenu
                 'data-toggle="dropdown"',
                 $children->getItems()
             ))->toArray();
-        else :
+        } else {
             $this->navbarItems[$name]['children'] += $children->getItems();
             ksort($this->navbarItems[$name]['children']);
-        endif;
+        }
 
         return $this;
     }
