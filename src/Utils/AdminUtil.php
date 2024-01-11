@@ -41,7 +41,7 @@ class AdminUtil
             );
         endforeach;
 
-        $adminMenu = new AdminMenu([], $adminGroupIterator);
+        $adminMenu = new AdminMenu($adminGroupIterator);
         $this->eventsManager->fire('adminMenu:AddChildren', $adminMenu);
         $adminForm = new AdminToolbarForm();
         $adminForm->setFormClass('form-inline my-2 my-lg-0');

@@ -6,7 +6,7 @@ namespace VitesseCms\Admin\Factories;
 
 use VitesseCms\Admin\Models\AdminListButton;
 
-class AdminListButtonFactory
+final class AdminListButtonFactory
 {
     public static function create(
         string $cssClass,
