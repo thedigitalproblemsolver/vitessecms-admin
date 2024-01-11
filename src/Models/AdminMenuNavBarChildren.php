@@ -1,13 +1,12 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace VitesseCms\Admin\Models;
 
-class AdminMenuNavBarChildren
+final class AdminMenuNavBarChildren
 {
-    /**
-     * @var array
-     */
-    protected $items;
+    protected array $items = [];
 
     public function addChild(string $name, string $slug, string $target = ''): AdminMenuNavBarChildren
     {
@@ -25,6 +24,6 @@ class AdminMenuNavBarChildren
 
     public function getItems(): array
     {
-        return $this->items ?? [];
+        return $this->items;
     }
 }

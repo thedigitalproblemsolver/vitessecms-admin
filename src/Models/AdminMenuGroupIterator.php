@@ -6,7 +6,7 @@ namespace VitesseCms\Admin\Models;
 
 use ArrayIterator;
 
-class AdminMenuGroupIterator extends ArrayIterator
+final class AdminMenuGroupIterator extends ArrayIterator
 {
     protected $index;
 

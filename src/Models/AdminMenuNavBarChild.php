@@ -1,29 +1,16 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace VitesseCms\Admin\Models;
 
 class AdminMenuNavBarChild
 {
-    /**
-     * @var string
-     */
-    protected $name;
-
-    /**
-     * @var string
-     */
-    protected $slug;
-
-    /**
-     * @var string
-     */
-    protected $target;
-
-    public function __construct(string $name, string $slug, string $target = '')
-    {
-        $this->name = $name;
-        $this->slug = $slug;
-        $this->target = $target;
+    public function __construct(
+        private readonly string $name,
+        private readonly string $slug,
+        private readonly string $target = ''
+    ) {
     }
 
     public function toArray(): array

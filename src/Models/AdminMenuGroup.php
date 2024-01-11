@@ -1,31 +1,18 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace VitesseCms\Admin\Models;
 
 use VitesseCms\Datagroup\Models\DatagroupIterator;
 
-class AdminMenuGroup
+final class AdminMenuGroup
 {
-    /**
-     * @var string
-     */
-    protected $label;
-
-    /**
-     * @var string
-     */
-    protected $key;
-
-    /**
-     * @var DatagroupIterator
-     */
-    protected $datagroups;
-
-    public function __construct(string $label, string $key, DatagroupIterator $datagroups)
-    {
-        $this->label = $label;
-        $this->key = $key;
-        $this->datagroups = $datagroups;
+    public function __construct(
+        private readonly string $label,
+        private readonly string $key,
+        private readonly DatagroupIterator $datagroups
+    ) {
     }
 
     public function getKey(): string

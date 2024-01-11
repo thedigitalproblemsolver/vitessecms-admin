@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace VitesseCms\Admin\Models;
 
-class AdminMenu
+final class AdminMenu
 {
     public array $navbarItems = [];
 
