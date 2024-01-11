@@ -1,23 +1,15 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace VitesseCms\Admin\Models;
 
 class AdminMenu
 {
-    /**
-     * @var array
-     */
-    protected $navbarItems;
+    public array $navbarItems = [];
 
-    /**
-     * @var AdminMenuGroupIterator
-     */
-    protected $groups;
-
-    public function __construct( array $navbarItems, AdminMenuGroupIterator $groups)
+    public function __construct(private readonly AdminMenuGroupIterator $groups)
     {
-        $this->navbarItems = $navbarItems;
-        $this->groups = $groups;
     }
 
     public function getNavbarItems(): array
@@ -46,5 +38,10 @@ class AdminMenu
     public function getGroups(): AdminMenuGroupIterator
     {
         return $this->groups;
+    }
+
+    public function getGroup(string $group): ?AdminMenuGroup
+    {
+        return $this->groups->getByKey($group);
     }
 }

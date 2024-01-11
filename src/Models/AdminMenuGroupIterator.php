@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace VitesseCms\Admin\Models;
 
@@ -22,11 +24,15 @@ class AdminMenuGroupIterator extends ArrayIterator
         return $this;
     }
 
-    public function getByKey(string $key): AdminMenuGroup
+    public function getByKey(string $key): ?AdminMenuGroup
     {
         $this->seek($this->index[$key]);
 
-        return $this->current();
+        if ($this->valid()) {
+            return $this->current();
+        }
+
+        return null;
     }
 
     public function current(): AdminMenuGroup
