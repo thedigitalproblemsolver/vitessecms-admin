@@ -36,7 +36,7 @@ class AdminMenuTest extends TestCase
 
         $this->assertIsArray($navBarItems);
         $this->assertIsArray($navBarItems['test dropdown']);
-        $this->assertSame(2,count($navBarItems['test dropdown']));
+        $this->assertSame(5,count($navBarItems['test dropdown']));
         $this->assertIsArray($navBarItems['test dropdown']['children']);
         $this->assertSame(['item 1' => [
                 'name' => 'item 1',
