@@ -6,7 +6,7 @@ namespace VitesseCms\Admin\Models;
 
 final class AdminMenu
 {
-    public array $navbarItems = [];
+    private array $navbarItems = [];
 
     public function __construct(private readonly AdminMenuGroupIterator $groups)
     {
@@ -31,7 +31,7 @@ final class AdminMenu
             $this->navbarItems[$name]['children'] += $children->getItems();
             ksort($this->navbarItems[$name]['children']);
         }
-
+        
         return $this;
     }
 
