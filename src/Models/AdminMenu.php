@@ -31,7 +31,6 @@ final class AdminMenu
             $this->navbarItems[$name]['children'] += $children->getItems();
             ksort($this->navbarItems[$name]['children']);
         }
-
         
         return $this;
     }
