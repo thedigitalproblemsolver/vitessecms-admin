@@ -32,6 +32,9 @@
     "vitessecms/database": "^1.5.0"
   },
   "require-dev": {
-    "phpunit/phpunit": "^10.5.5"
+    "phpunit/phpunit": "^10.5.5",
+    "phpstan/phpstan": "^1.10",
+    "friendsofphp/php-cs-fixer": "^3.48",
+    "phpmd/phpmd": "^2.15"
   }
 }
