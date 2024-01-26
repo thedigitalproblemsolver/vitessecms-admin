@@ -13,6 +13,9 @@ use VitesseCms\Mustache\Enum\ViewEnum;
 
 class Toolbar extends AbstractBlockModel
 {
+    /**
+     * @return array<mixed>
+     */
     public function getTemplateParams(Block $block): array
     {
         $params = parent::getTemplateParams($block);
@@ -22,10 +25,10 @@ class Toolbar extends AbstractBlockModel
                 'navbar',
                 [
                     'navbar' => (new AdminUtil(
-                        $this->getDi()->get('user'),
-                        $this->getDi()->get('eventsManager'),
+                        $this->di->get('user'),
+                        $this->di->get('eventsManager'),
                         new DatagroupRepository()
-                    ))->getToolbar()
+                    ))->getToolbar(),
                 ]
             )
         );

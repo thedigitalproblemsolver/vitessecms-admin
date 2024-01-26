@@ -24,6 +24,7 @@ use VitesseCms\Datagroup\Models\Datagroup;
 use VitesseCms\Form\AbstractForm;
 use VitesseCms\Form\Helpers\ElementHelper;
 use VitesseCms\Language\Models\Language;
+use VitesseCms\Log\Models\Log;
 use VitesseCms\Mustache\DTO\RenderTemplateDTO;
 use VitesseCms\Mustache\Enum\ViewEnum;
 
