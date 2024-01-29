@@ -9,10 +9,12 @@ use VitesseCms\Block\Models\Block;
 use VitesseCms\Core\Services\BootstrapService;
 use VitesseCms\Core\Services\ViewService;
 
-class ToolbarTest extends TestCase
+final class ToolbarTest extends TestCase
 {
+    /**
+     * @todo finish when abstract block is implified
+     */
     public function testToolbarParams()
     {
-        //finish when abstract block is implified
     }
 }

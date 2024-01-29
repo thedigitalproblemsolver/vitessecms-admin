@@ -12,7 +12,7 @@ use VitesseCms\Admin\Models\AdminMenuNavBarChildren;
 use VitesseCms\Core\Enum\SystemEnum;
 use VitesseCms\Datagroup\Models\DatagroupIterator;
 
-class AdminMenuTest extends TestCase
+final class AdminMenuTest extends TestCase
 {
     public function testClassConstructor(): void
     {

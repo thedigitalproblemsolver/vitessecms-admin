@@ -8,7 +8,7 @@ use PHPUnit\Framework\TestCase;
 use VitesseCms\Admin\Factories\AdminListButtonFactory;
 use VitesseCms\Admin\Models\AdminListButton;
 
-class AdminListButtonFactoryTest extends TestCase
+final class AdminListButtonFactoryTest extends TestCase
 {
     public function testCreate()
     {
