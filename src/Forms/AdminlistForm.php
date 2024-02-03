@@ -1,11 +1,11 @@
 <?php
+
 declare(strict_types=1);
 
 namespace VitesseCms\Admin\Forms;
 
 use VitesseCms\Core\Utils\UiUtils;
 use VitesseCms\Form\AbstractForm;
-use VitesseCms\Form\Interfaces\AbstractFormInterface;
 use VitesseCms\Form\Models\Attributes;
 
 class AdminlistForm extends AbstractForm implements AdminlistFormInterface
@@ -16,7 +16,7 @@ class AdminlistForm extends AbstractForm implements AdminlistFormInterface
         bool $noAjax = false,
         bool $newWindow = false
     ): string {
-        if ($this->count($this->getElements()) === 0) {
+        if (0 === $this->count()) {
             return '';
         }
 
@@ -29,15 +29,15 @@ class AdminlistForm extends AbstractForm implements AdminlistFormInterface
         return parent::renderForm($action, $formName, $noAjax, $newWindow);
     }
 
-    public function addNameField(AbstractFormInterface $form): void
+    public function addNameField(): void
     {
         $this->addText(
             '%CORE_NAME%',
-            'filter[name.' . $this->configuration->getLanguageShort() . ']'
+            'filter[name.'.$this->configuration->getLanguageShort().']'
         );
     }
 
-    public function addPublishedField(AbstractFormInterface $form): void
+    public function addPublishedField(): void
     {
         $this->addDropdown(
             '%ADMIN_PUBLISHED_STATE%',
@@ -49,6 +49,4 @@ class AdminlistForm extends AbstractForm implements AdminlistFormInterface
             ])
         );
     }
-
 }
-
