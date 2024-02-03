@@ -19,6 +19,6 @@ final class AdminlistFormTest extends TestCase
     /**
      * @todo add when form is not dependen on di
      */
-    public function testAddedFields(){
-    }
+    /*public function testAddedFields(){
+    }*/
 }

@@ -14,7 +14,7 @@ final class ToolbarTest extends TestCase
     /**
      * @todo finish when abstract block is implified
      */
-    public function testToolbarParams()
+    /*public function testToolbarParams()
     {
-    }
+    }*/
 }
