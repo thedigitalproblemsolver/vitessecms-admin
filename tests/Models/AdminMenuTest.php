@@ -24,6 +24,23 @@ final class AdminMenuTest extends TestCase
         $this->assertSame('content',$this->createClass()->getGroup('content')->getKey());
     }
 
+    public function testSortnavbarItems(): void
+    {
+        $adminMenu = $this->createClass();
+
+        $dropdown = new AdminMenuNavBarChildren();
+        $dropdown->addChild('test','test');
+
+        $adminMenu->addDropdown('z', $dropdown);
+        $adminMenu->addDropdown('k', $dropdown);
+        $adminMenu->addDropdown('a', $dropdown);
+
+        $navBarItems = $adminMenu->getNavbarItems();
+
+        $this->assertSame('a',array_key_first($navBarItems));
+        $this->assertSame('z',array_key_last($navBarItems));
+    }
+
     public function testAddDropdown(): void
     {
         $dropdown = new AdminMenuNavBarChildren();
