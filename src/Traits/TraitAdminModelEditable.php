@@ -14,17 +14,17 @@ trait TraitAdminModelEditable
     protected bool $isEditable = true;
     protected array $formParams = [];
 
-    public function editAction(string $id): void
+    public function editAction(string $itemId): void
     {
         $modelForm = $this->getModelForm();
-        $modelForm->setEntity($this->getModel($id));
+        $modelForm->setEntity($this->getModel($itemId));
         $modelForm->buildForm();
-        $this->eventsManager->fire(self::class . ':beforeEditModel', $this, $modelForm->getEntity());
+        $this->eventsManager->fire(self::class.':beforeEditModel', $this, $modelForm->getEntity());
         $this->addFormParams(
             'form',
             $modelForm->renderForm(
-                $this->urlService->getBaseUri() . 'admin/' . $this->router->getModuleName(
-                ) . '/' . $this->router->getControllerName() . '/save/' . $id
+                $this->urlService->getBaseUri().'admin/'.$this->router->getModuleName(
+                ).'/'.$this->router->getControllerName().'/save/'.$itemId
             )
         );
         $this->addFormParams('model', $modelForm->getEntity());
@@ -42,7 +42,7 @@ trait TraitAdminModelEditable
         );
     }
 
-    public function addFormParams(string $key, $value)
+    public function addFormParams(string $key, $value): void
     {
         $this->formParams[$key] = $value;
     }
