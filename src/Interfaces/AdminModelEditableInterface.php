@@ -1,12 +1,15 @@
-<?php declare(strict_types=1);
+<?php
+declare(strict_types=1);
 
 namespace VitesseCms\Admin\Interfaces;
 
 use VitesseCms\Database\AbstractCollection;
-use VitesseCms\Form\Interfaces\AbstractFormInterface;
 
-interface AdminModelEditableInterface extends AdminModelSaveInterface {
-    public function editAction(string $id): void;
+interface AdminModelEditableInterface extends AdminModelSaveInterface
+{
+    public function editAction(string $itemId): void;
+
     public function getModel(string $id): ?AbstractCollection;
+
     public function getModelForm(): AdminModelFormInterface;
 }
