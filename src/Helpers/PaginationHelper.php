@@ -7,7 +7,7 @@ namespace VitesseCms\Admin\Helpers;
 use VitesseCms\Core\Services\UrlService;
 use VitesseCms\Database\AbstractCollection;
 
-class PaginationHelper
+final class PaginationHelper
 {
     /**
      * @param \SeekableIterator<int, AbstractCollection> $seekableIterator

@@ -8,7 +8,7 @@ use VitesseCms\Form\AbstractForm;
 use VitesseCms\Form\Models\Attributes;
 use VitesseCms\User\Utils\PermissionUtils;
 
-class AdminToolbarForm extends AbstractForm
+final class AdminToolbarForm extends AbstractForm
 {
     public function initialize(): void
     {

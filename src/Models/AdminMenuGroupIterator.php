@@ -4,12 +4,19 @@ declare(strict_types=1);
 
 namespace VitesseCms\Admin\Models;
 
-use ArrayIterator;
-
-final class AdminMenuGroupIterator extends ArrayIterator
+/**
+ * @extends \ArrayIterator<int, AdminMenuGroup>
+ */
+final class AdminMenuGroupIterator extends \ArrayIterator
 {
-    protected $index;
+    /**
+     * @var array<string,int>
+     */
+    protected array $index;
 
+    /**
+     * @param array<mixed> $groups
+     */
     public function __construct(array $groups = [])
     {
         $this->index = [];
