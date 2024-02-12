@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace VitesseCms\Admin\Models;
 
-class AdminMenuNavBarChild
+final class AdminMenuNavBarChild
 {
     public function __construct(
         private readonly string $name,
@@ -13,12 +13,15 @@ class AdminMenuNavBarChild
     ) {
     }
 
+    /**
+     * @return array<string,string>
+     */
     public function toArray(): array
     {
         return [
             'name' => $this->name,
             'slug' => $this->slug,
-            'target' => $this->target
+            'target' => $this->target,
         ];
     }
 }

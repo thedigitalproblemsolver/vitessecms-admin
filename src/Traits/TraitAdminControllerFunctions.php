@@ -97,8 +97,8 @@ trait TraitAdminControllerFunctions
     {
         parent::onConstruct();
 
-        $this->link = $this->url->getBaseUri() . 'admin/' . $this->router->getModuleName(
-            ) . '/' . $this->router->getControllerName();
+        $this->link = $this->url->getBaseUri().'admin/'.$this->router->getModuleName(
+            ).'/'.$this->router->getControllerName();
         $this->class = null;
         $this->classForm = null;
         $this->listOrder = 'name';
@@ -106,7 +106,7 @@ trait TraitAdminControllerFunctions
         $this->listSortable = false;
         $this->listNestable = false;
         $this->listTemplate = 'adminList';
-        $this->listTemplatePath = $this->configuration->getVendorNameDir() . 'admin/src/Resources/views/';
+        $this->listTemplatePath = $this->configuration->getVendorNameDir().'admin/src/Resources/views/';
         $this->controllerName = (new ReflectionClass($this))->getShortName();
         $this->renderParams = [];
         $this->displayEditButton = true;
@@ -117,8 +117,8 @@ trait TraitAdminControllerFunctions
         $adminListButtons = $this->eventsManager->fire(
             ViewEnum::RENDER_TEMPLATE_EVENT,
             new RenderTemplateDTO(
-                str_replace('admin', '', $this->router->getControllerName()) . 'Buttons',
-                $this->router->getModuleName() . '/src/Resources/views/admin/list/'
+                str_replace('admin', '', $this->router->getControllerName()).'Buttons',
+                $this->router->getModuleName().'/src/Resources/views/admin/list/'
             )
         );
 
@@ -132,12 +132,12 @@ trait TraitAdminControllerFunctions
                     'editBaseUri' => $this->link,
                     'isAjax' => $this->request->isAjax(),
                     'filter' => $this->eventsManager->fire(
-                        get_class($this) . ':adminListFilter',
+                        get_class($this).':adminListFilter',
                         $this,
                         new AdminlistForm()
                     ),
                     'adminListButtons' => $adminListButtons,
-                    'displayEditButton' => $this->displayEditButton
+                    'displayEditButton' => $this->displayEditButton,
                 ]
             )
         );
@@ -153,13 +153,13 @@ trait TraitAdminControllerFunctions
             'class' => 'list-group admin-list',
             'listSortable' => false,
         ];
-        $templatePath = $this->configuration->getVendorNameDir() . 'admin/src/Resources/views/admin';
+        $templatePath = $this->configuration->getVendorNameDir().'admin/src/Resources/views/admin';
         if ($level === 0 && $this->listSortable) :
             $params = [
                 'id' => uniqid('item-', false),
-                'ajaxurl' => 'admin' . '/' .
-                    $this->router->getModuleName() . '/' .
-                    $this->router->getControllerName() . '/' .
+                'ajaxurl' => 'admin'.'/'.
+                    $this->router->getModuleName().'/'.
+                    $this->router->getControllerName().'/'.
                     'saveorder',
                 'class' => 'list-group admin-list sortable',
                 'listSortable' => true,
@@ -170,7 +170,7 @@ trait TraitAdminControllerFunctions
 
         /** @var AbstractCollection $item */
         foreach ($pagination->getItems() as $item) :
-            $this->eventsManager->fire($this->controllerName . ':adminListItem', $this, $item);
+            $this->eventsManager->fire($this->controllerName.':adminListItem', $this, $item);
 
             $return .= $this->view->renderTemplate(
                 'recursiveAdminListItemStart',
@@ -180,7 +180,7 @@ trait TraitAdminControllerFunctions
                     'adminListButtons' => AdminListUtil::getAdminListButtons(
                         $item,
                         str_replace($this->url->getBaseUri(), '', $this->link),
-                        $this->acl
+                        $this->eventsManager
                     ),
                     'adminListRowClass' => ItemHelper::getRowStateClass($item->isPublished()),
                     'adminListName' => $item->getAdminlistName(),
@@ -204,7 +204,7 @@ trait TraitAdminControllerFunctions
                         endswitch;
                     endif;
                 endif;
-                $childPagination = $this->getAdminListPagination((string)$item->getId());
+                $childPagination = $this->getAdminListPagination((string) $item->getId());
 
                 $return .= $this->recursiveAdminList($childPagination, $level + 1);
             elseif ($this->listNestable):
@@ -263,7 +263,7 @@ trait TraitAdminControllerFunctions
             $items,
             $this->request,
             $this->url,
-            'page_' . $parentId
+            'page_'.$parentId
         );
     }
 
@@ -282,16 +282,16 @@ trait TraitAdminControllerFunctions
                     $resetSortable = true;
                 endif;
             endforeach;
-            $this->session->set('filter_' . $this->class, $filter);
+            $this->session->set('filter_'.$this->class, $filter);
             if ($resetSortable) :
                 $this->listSortable = false;
                 $this->listNestable = false;
             endif;
         elseif (
-            is_array($this->session->get('filter_' . $this->class))
-            && !empty($this->session->get('filter_' . $this->class))
+            is_array($this->session->get('filter_'.$this->class))
+            && !empty($this->session->get('filter_'.$this->class))
         ) :
-            $_REQUEST['filter'] = $filter = $this->session->get('filter_' . $this->class);
+            $_REQUEST['filter'] = $filter = $this->session->get('filter_'.$this->class);
             $this->listSortable = false;
             $this->listNestable = false;
         else :
@@ -312,7 +312,7 @@ trait TraitAdminControllerFunctions
             $datagroups = [];
             $datagroupChildren = DatagroupHelper::getChildrenFromRoot($datagroup);
             foreach ($datagroupChildren as $datagroupChild) :
-                $datagroups[] = (string)$datagroupChild->getId();
+                $datagroups[] = (string) $datagroupChild->getId();
             endforeach;
             $item::setFindValue('datagroup', ['$in' => $datagroups]);
         endif;
@@ -331,7 +331,7 @@ trait TraitAdminControllerFunctions
             endif;
         endif;
 
-        $this->eventsManager->fire(get_class($this) . ':beforePostBinding', $this, $item);
+        $this->eventsManager->fire(get_class($this).':beforePostBinding', $this, $item);
         if ($form === null) :
             $form = $this->getItemForm($form, $item);
         endif;
@@ -341,7 +341,7 @@ trait TraitAdminControllerFunctions
             $item = $this->parseFormElement($form, $item);
             $item = $this->parseSubmittedFiles($item);
             //TODO move to native collection beforeSave event?
-            $this->eventsManager->fire(get_class($this) . ':beforeModelSave', $this, $item);
+            $this->eventsManager->fire(get_class($this).':beforeModelSave', $this, $item);
             $item->save();
 
             if ($item->_('parentId')) :
@@ -355,14 +355,14 @@ trait TraitAdminControllerFunctions
 
             //TODO move to native collection afterSave event?
             $this->afterSave($item);
-            $this->eventsManager->fire(get_class($this) . ':afterModelSave', $this, $item);
+            $this->eventsManager->fire(get_class($this).':afterModelSave', $this, $item);
 
             $this->log->write($item->getId(), get_class($item), 'Item saved');
 
             $this->flash->setSucces('ADMIN_ITEM_SAVED');
         endif;
 
-        $this->redirect($this->link . '/edit/' . $item->getId(), [], false);
+        $this->redirect($this->link.'/edit/'.$item->getId(), [], false);
     }
 
     protected function getItemForm(?AbstractForm $form, AbstractCollection $item): ?AbstractForm
@@ -402,13 +402,13 @@ trait TraitAdminControllerFunctions
                     break;
                 case Numeric::class:
                     if (is_array($element->getValue())) :
-                        $values = (array)$element->getValue();
+                        $values = (array) $element->getValue();
                         foreach ($values as $key => $value) :
-                            $values[$key] = (float)$value;
+                            $values[$key] = (float) $value;
                         endforeach;
                         $item->set($element->getName(), $values);
                     else :
-                        $item->set($element->getName(), (float)$element->getValue());
+                        $item->set($element->getName(), (float) $element->getValue());
                     endif;
                     break;
                 case Select::class:
@@ -471,7 +471,7 @@ trait TraitAdminControllerFunctions
             foreach ($this->request->getUploadedFiles() as $file) :
                 if (!empty($file->getName())) :
                     $name = FileUtil::sanatize($file->getName());
-                    if ($file->moveTo($this->config->get('uploadDir') . $name)) :
+                    if ($file->moveTo($this->config->get('uploadDir').$name)) :
                         $key = $file->getKey();
                         if (substr_count($key, '.') > 0) :
                             $tmp = explode('.', $key);
@@ -524,21 +524,20 @@ trait TraitAdminControllerFunctions
             $item = $this->class::findById($itemId);
         endif;
 
-        $this->eventsManager->fire(get_class($this) . ':beforeEdit', $this, $item);
+        $this->eventsManager->fire(get_class($this).':beforeEdit', $this, $item);
 
         $form = $this->getItemForm($form, $item);
         if ($form !== null) :
             $adminEditForm = $form->renderForm(
-                'admin/' . $this->router->getModuleName() . '/' . $this->router->getControllerName(
-                ) . '/save/' . $itemId
+                'admin/'.$this->router->getModuleName().'/'.$this->router->getControllerName().'/save/'.$itemId
             );
         endif;
 
         $adminButtons = $this->eventsManager->fire(
             ViewEnum::RENDER_TEMPLATE_EVENT,
             new RenderTemplateDTO(
-                str_replace('admin', '', $this->router->getControllerName()) . 'Buttons',
-                $this->router->getModuleName() . '/src/Resources/views/admin/edit/',
+                str_replace('admin', '', $this->router->getControllerName()).'Buttons',
+                $this->router->getModuleName().'/src/Resources/views/admin/edit/',
                 ['editId' => $item->getId()]
             )
         );
@@ -570,11 +569,11 @@ trait TraitAdminControllerFunctions
         $item::setRenderFields(false);
         $item = $item::findById($this->dispatcher->getParam(0));
         if ($item) :
-            $this->eventsManager->fire(get_class($item) . ':beforeDelete', $item);
+            $this->eventsManager->fire(get_class($item).':beforeDelete', $item);
             $item->beforeDelete();
             $item->delete();
             $item->afterDelete();
-            $this->eventsManager->fire(get_class($item) . ':afterDelete', $item);
+            $this->eventsManager->fire(get_class($item).':afterDelete', $item);
 
             if ($this->class !== Log::class) :
                 $this->log->write(
@@ -601,7 +600,7 @@ trait TraitAdminControllerFunctions
             $this->flash->setError('ADMIN_ITEM_NOT_FOUND');
         endif;
 
-        $this->redirect($this->link . '/adminList');
+        $this->redirect($this->link.'/adminList');
     }
 
     public function copyAction(string $itemId): void
@@ -617,7 +616,7 @@ trait TraitAdminControllerFunctions
             if (!in_array($language->_('short'), $parsedLanguage, true)) :
                 $item->set(
                     'name',
-                    $item->_('name', $language->_('short')) . ' - copy',
+                    $item->_('name', $language->_('short')).' - copy',
                     true,
                     $language->_('short')
                 );
@@ -626,7 +625,7 @@ trait TraitAdminControllerFunctions
         endforeach;
         $item->save();
 
-        $this->redirect($this->link . '/adminList');
+        $this->redirect($this->link.'/adminList');
     }
 
     public function togglePublishAction(): void
@@ -653,7 +652,7 @@ trait TraitAdminControllerFunctions
         $item->beforePublish();
         $item->save();
         $item->afterPublish();
-        $this->eventsManager->fire(get_class($this) . ':afterPublish', $this, $item);
+        $this->eventsManager->fire(get_class($this).':afterPublish', $this, $item);
 
         $this->log->write($item->getId(), $this->class, $this->language->get($logMessage));
 
@@ -662,12 +661,12 @@ trait TraitAdminControllerFunctions
 
     public function saveorderAction(): void
     {
-        $ordering = (array)json_decode($this->request->get('ordering'));
+        $ordering = (array) json_decode($this->request->get('ordering'));
         $this->recursiveSaveOrder($ordering[0], $this->class);
 
         $this->flash->setSucces('ADMIN_ORDERING_SAVED');
 
-        $this->redirect($this->link . '/adminList');
+        $this->redirect($this->link.'/adminList');
     }
 
     /**

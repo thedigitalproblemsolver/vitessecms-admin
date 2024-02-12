@@ -6,6 +6,9 @@ namespace VitesseCms\Admin\Models;
 
 final class AdminMenuNavBarItem
 {
+    /**
+     * @param array<int,array<string,string>> $children
+     */
     public function __construct(
         private readonly string $name,
         private readonly string $slug,
@@ -15,6 +18,9 @@ final class AdminMenuNavBarItem
     ) {
     }
 
+    /**
+     * @return array<string,string|array<int,array<string,string>>>
+     */
     public function toArray(): array
     {
         return [

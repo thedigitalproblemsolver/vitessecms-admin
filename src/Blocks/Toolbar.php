@@ -11,7 +11,7 @@ use VitesseCms\Datagroup\Repositories\DatagroupRepository;
 use VitesseCms\Mustache\DTO\RenderPartialDTO;
 use VitesseCms\Mustache\Enum\ViewEnum;
 
-class Toolbar extends AbstractBlockModel
+final class Toolbar extends AbstractBlockModel
 {
     /**
      * @return array<mixed>

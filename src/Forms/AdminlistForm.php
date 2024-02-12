@@ -8,7 +8,7 @@ use VitesseCms\Core\Utils\UiUtils;
 use VitesseCms\Form\AbstractForm;
 use VitesseCms\Form\Models\Attributes;
 
-class AdminlistForm extends AbstractForm implements AdminlistFormInterface
+final class AdminlistForm extends AbstractForm implements AdminlistFormInterface
 {
     public function renderForm(
         string $action,

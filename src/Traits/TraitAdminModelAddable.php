@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace VitesseCms\Admin\Traits;
 
@@ -14,9 +16,9 @@ trait TraitAdminModelAddable
         $form = $this->getModelForm();
         $form->buildForm();
         $renderedForm = $form->renderForm(
-            'admin/' . $this->router->getModuleName() . '/' . $this->router->getControllerName() . '/save/new'
+            'admin/'.$this->router->getModuleName().'/'.$this->router->getControllerName().'/save/new'
         );
-        $this->viewService->set('content', $this->eventsManager->fire(ViewEnum::RENDER_TEMPLATE_EVENT,new RenderTemplateDTO(
+        $this->viewService->set('content', $this->eventsManager->fire(ViewEnum::RENDER_TEMPLATE_EVENT, new RenderTemplateDTO(
             'adminModelForm',
             '',
             ['form' => $renderedForm]

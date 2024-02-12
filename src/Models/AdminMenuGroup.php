@@ -11,7 +11,7 @@ final class AdminMenuGroup
     public function __construct(
         private readonly string $label,
         private readonly string $key,
-        private readonly DatagroupIterator $datagroups
+        private readonly DatagroupIterator $datagroupIterator
     ) {
     }
 
@@ -20,8 +20,16 @@ final class AdminMenuGroup
         return $this->key;
     }
 
+    /**
+     * @deprecated use getDatagroupIterator instead
+     */
     public function getDatagroups(): DatagroupIterator
     {
-        return $this->datagroups;
+        return $this->getDatagroupIterator();
+    }
+
+    public function getDatagroupIterator(): DatagroupIterator
+    {
+        return $this->datagroupIterator;
     }
 }
