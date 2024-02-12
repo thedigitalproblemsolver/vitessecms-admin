@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace VitesseCms\Admin\Traits;
 
-use stdClass;
 use VitesseCms\Core\Utils\StringUtil;
 use VitesseCms\Database\AbstractCollection;
 use VitesseCms\Mustache\DTO\RenderTemplateDTO;
@@ -14,11 +13,11 @@ trait TraitAdminModelReadOnly
 {
     protected bool $isReadOnly = true;
 
-    public function readOnlyAction(string $id): void
+    public function readOnlyAction(string $itemId): void
     {
-        $model = $this->getModel($id);
+        $model = $this->getModel($itemId);
 
-        if ($model !== null) {
+        if (null !== $model) {
             $properties = get_class_vars($model::class);
             unset(
                 $properties['findValue'],
@@ -37,7 +36,7 @@ trait TraitAdminModelReadOnly
                 if (isset($model->$key)) {
                     $vars[] = [
                         'key' => ucfirst(StringUtil::camelCaseToSeperator($key)),
-                        'value' => $this->getReadOnlyValue($key, $model)
+                        'value' => $this->getReadOnlyValue($key, $model),
                     ];
                 }
             }
@@ -61,17 +60,17 @@ trait TraitAdminModelReadOnly
         $class = $model::class;
         $value = $model->$key;
 
-        if (gettype($value) === 'object') {
-            if ($value::class === 'MongoDB\BSON\UTCDateTime') {
+        if ('object' === gettype($value)) {
+            if ('MongoDB\BSON\UTCDateTime' === $value::class) {
                 $value = $value->toDateTime()->format('Y-m-d H:i:s');
             }
         }
 
         return match ($key) {
             'fieldNames' => $this->parseFieldNames($model, $value),
-            'itemId' => $this->parseItemId($class, (string)$value),
-            'userId' => $this->parseUserId((string)$value),
-            default => (string)$value
+            'itemId' => $this->parseItemId($class, (string) $value),
+            'userId' => $this->parseUserId((string) $value),
+            default => (string) $value
         };
     }
 
@@ -81,11 +80,11 @@ trait TraitAdminModelReadOnly
         foreach ($value as $k => $v) {
             $data[] = [
                 'key' => $v,
-                'value' => $model->_($k)
+                'value' => $model->_($k),
             ];
         }
 
-        if (count($data) === 0) {
+        if (0 === count($data)) {
             return '';
         }
 
@@ -98,12 +97,12 @@ trait TraitAdminModelReadOnly
     private function parseItemId(?string $class, string $value): string
     {
         if (!empty($class)) {
-            $eventTrigger = array_reverse(explode('\\', $class))[0] . 'Listener:getRepository';
-            $repository = $this->eventsManager->fire($eventTrigger, new stdClass());
-            if ($repository !== null) {
+            $eventTrigger = array_reverse(explode('\\', $class))[0].'Listener:getRepository';
+            $repository = $this->eventsManager->fire($eventTrigger, new \stdClass());
+            if (null !== $repository) {
                 $item = $repository->getById($value, false);
-                if ($item !== null) {
-                    return $item->getNameField() . ' ( ' . $value . ' )';
+                if (null !== $item) {
+                    return $item->getNameField().' ( '.$value.' )';
                 }
             }
         }
@@ -114,8 +113,8 @@ trait TraitAdminModelReadOnly
     private function parseUserId(string $value): string
     {
         $user = $this->userRepository->getById($value, false);
-        if ($user !== null) {
-            return $user->getNameField() . ' ( ' . $value . ' )';
+        if (null !== $user) {
+            return $user->getNameField().' ( '.$value.' )';
         }
 
         return $value;

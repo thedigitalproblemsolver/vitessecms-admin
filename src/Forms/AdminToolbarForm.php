@@ -8,24 +8,24 @@ use VitesseCms\Form\AbstractForm;
 use VitesseCms\Form\Models\Attributes;
 use VitesseCms\User\Utils\PermissionUtils;
 
-class AdminToolbarForm extends AbstractForm
+final class AdminToolbarForm extends AbstractForm
 {
     public function initialize(): void
     {
-        if (PermissionUtils::check($this->user, 'block', 'adminblockposition', 'edit')) :
+        if (PermissionUtils::check($this->user, 'block', 'adminblockposition', 'edit')) {
             $this->addToggle(
                 'Layout',
                 'layoutMode',
                 (new Attributes())->setChecked($this->session->get('layoutMode', false))
             );
-        endif;
-        if (PermissionUtils::check($this->user, 'block', 'adminblock', 'edit')) :
+        }
+        if (PermissionUtils::check($this->user, 'block', 'adminblock', 'edit')) {
             $this->addToggle(
                 'Editor',
                 'editorMode',
                 (new Attributes())->setChecked($this->session->get('editorMode', false))
             );
-        endif;
+        }
 
         $this->addToggle(
             'Cache',
@@ -35,10 +35,10 @@ class AdminToolbarForm extends AbstractForm
             )
         );
 
-        if ($this->view->getCurrentId() !== null) {
+        if (null !== $this->view->getCurrentId()) {
             $this->addHtml(
-                '<a class="btn btn-primary fa fa-edit" target="_blank" href="' . $this->configuration->getBaseUri(
-                ) . 'admin/content/adminitem/edit/' . $this->view->getCurrentId() . '"></a>'
+                '<a class="btn btn-primary fa fa-edit" target="_blank" href="'.$this->configuration->getBaseUri(
+                ).'admin/content/adminitem/edit/'.$this->view->getCurrentId().'"></a>'
             );
         }
     }

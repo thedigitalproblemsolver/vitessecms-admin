@@ -1,21 +1,25 @@
 <?php
+
 declare(strict_types=1);
 
 namespace VitesseCms\Admin\Traits;
 
-use stdClass;
+use Phalcon\Incubator\MongoDB\Mvc\Collection\Exception;
 use VitesseCms\Language\Enums\LanguageEnum;
 
 trait TraitAdminModelDeletable
 {
     protected bool $isDeletable = true;
 
-    public function deleteAction(string $id): void
+    /**
+     * @throws Exception
+     */
+    public function deleteAction(string $itemId): void
     {
-        $languageService = $this->eventsManager->fire(LanguageEnum::ATTACH_SERVICE_LISTENER->value, new stdClass());
-        $model = $this->getModel($id);
-        if ($model !== null) {
-            if ($this->eventsManager->fire(self::class . ':validateDeleteAction', $model) !== false) {
+        $languageService = $this->eventsManager->fire(LanguageEnum::ATTACH_SERVICE_LISTENER->value, new \stdClass());
+        $model = $this->getModel($itemId);
+        if (null !== $model) {
+            if (false !== $this->eventsManager->fire(self::class.':validateDeleteAction', $model)) {
                 $model->delete();
                 $this->logService->write(
                     $model->getId(),
