@@ -25,21 +25,21 @@ class AdminUtil
 
     public static function isAdminPage(): bool
     {
-        return !(substr_count($_SERVER['REQUEST_URI'] ?? '', 'admin/') === 0);
+        return !(0 === substr_count($_SERVER['REQUEST_URI'] ?? '', 'admin/'));
     }
 
+    /**
+     * @return array<mixed>
+     */
     public function getToolbar(): array
     {
         $adminGroupIterator = new AdminMenuGroupIterator();
-        foreach (SystemEnum::COMPONENTS as $key => $label) :
-            $adminGroupIterator->add(
-                new AdminMenuGroup(
-                    $label,
-                    $key,
-                    $this->datagroupRepository->getBySystemComponent($key)
-                )
-            );
-        endforeach;
+        foreach (SystemEnum::COMPONENTS as $key => $label) {
+            $datagroupIterator = $this->datagroupRepository->getBySystemComponent($key);
+            if (null !== $datagroupIterator) {
+                $adminGroupIterator->add(new AdminMenuGroup($label, $key, $datagroupIterator));
+            }
+        }
 
         $adminMenu = new AdminMenu($adminGroupIterator);
         $this->eventsManager->fire('adminMenu:AddChildren', $adminMenu);
@@ -52,31 +52,35 @@ class AdminUtil
             'form' => $adminForm->renderForm(
                 'admin/core/adminindex/toggleParameters',
                 'adminToolbarForm'
-            )
+            ),
         ];
     }
 
+    /**
+     * @param array<mixed> $navbarItems
+     * @return array<mixed>
+     */
     protected function toolbarAclCheck(array $navbarItems): array
     {
-        foreach ($navbarItems as $parentIndex => $parent) :
-            foreach ($parent['children'] as $childIndex => $child) :
-                if ($child['slug'] !== '#') :
+        foreach ($navbarItems as $parentIndex => $parent) {
+            foreach ($parent['children'] as $childIndex => $child) {
+                if ('#' !== $child['slug']) {
                     $path = explode('/', $child['slug']);
                     if (
-                        'superadmin' !== $this->user->getPermissionRole() &&
-                        !PermissionUtils::check($this->user, $path[1], $path[2], $path[3] ?? '')
-                    ) :
+                        'superadmin' !== $this->user->getPermissionRole()
+                        && !PermissionUtils::check($this->user, $path[1], $path[2], $path[3] ?? '')
+                    ) {
                         unset($parent['children'][$childIndex]);
-                    endif;
-                endif;
-            endforeach;
+                    }
+                }
+            }
 
-            if (count($parent['children']) === 0) :
+            if (0 === count($parent['children'])) {
                 unset($navbarItems[$parentIndex]);
-            else :
+            } else {
                 $navbarItems[$parentIndex]['children'] = array_values($parent['children']);
-            endif;
-        endforeach;
+            }
+        }
 
         return array_values($navbarItems);
     }

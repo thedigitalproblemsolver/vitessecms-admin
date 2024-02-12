@@ -8,7 +8,7 @@ use VitesseCms\Database\AbstractCollection;
 
 interface AdminModelReadOnlyInterface
 {
-    public function readOnlyAction(string $modelId): void;
+    public function readOnlyAction(string $modelItemId): void;
 
     public function getModel(string $modelId): ?AbstractCollection;
 }

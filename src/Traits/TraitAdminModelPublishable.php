@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace VitesseCms\Admin\Traits;
@@ -7,9 +8,9 @@ trait TraitAdminModelPublishable
 {
     protected bool $isPublishable = true;
 
-    public function togglePublishAction(string $id): void
+    public function togglePublishAction(string $itemId): void
     {
-        $model = $this->getModel($id);
+        $model = $this->getModel($itemId);
         switch ($model->isPublished()) {
             case false:
                 $model->setPublished(true);
@@ -25,8 +26,8 @@ trait TraitAdminModelPublishable
         $model->save();
 
         $this->redirect(
-            $this->urlService->getBaseUri() . 'admin/' . $this->routerService->getModuleName(
-            ) . '/' . $this->routerService->getControllerName() . '/adminlist/'
+            $this->urlService->getBaseUri().'admin/'.$this->routerService->getModuleName(
+            ).'/'.$this->routerService->getControllerName().'/adminlist/'
         );
     }
 }

@@ -1,21 +1,23 @@
 <?php
+
 declare(strict_types=1);
 
 namespace VitesseCms\Admin\Traits;
 
-use stdClass;
+use Phalcon\Incubator\MongoDB\Mvc\Collection\Exception;
 use VitesseCms\Language\Enums\LanguageEnum;
-use VitesseCms\Language\Repositories\LanguageRepository;
 
 trait TraitAdminModelCopyable
 {
     protected bool $isCopyable = true;
 
-    public function copyAction(string $id): void
+    /**
+     * @throws Exception
+     */
+    public function copyAction(string $itemId): void
     {
-        /** @var LanguageRepository $languageRepository */
-        $languageRepository = $this->eventsManager->fire(LanguageEnum::GET_REPOSITORY->value, new stdClass());
-        $model = $this->getModel($id);
+        $languageRepository = $this->eventsManager->fire(LanguageEnum::GET_REPOSITORY->value, new \stdClass());
+        $model = $this->getModel($itemId);
 
         $model->resetId();
         $model->set('createdAt', date('Y-m-d H:i:s'));
@@ -26,7 +28,7 @@ trait TraitAdminModelCopyable
             $language = $languages->current();
             $model->set(
                 'name',
-                $model->getNameField($language->getShortCode()) . ' - copy',
+                $model->getNameField($language->getShortCode()).' - copy',
                 true,
                 $language->getShortCode()
             );
@@ -35,8 +37,8 @@ trait TraitAdminModelCopyable
         $model->save();
 
         $this->redirect(
-            $this->urlService->getBaseUri() . 'admin/' . $this->routerService->getModuleName(
-            ) . '/' . $this->routerService->getControllerName() . '/adminList/'
+            $this->urlService->getBaseUri().'admin/'.$this->routerService->getModuleName(
+            ).'/'.$this->routerService->getControllerName().'/adminList/'
         );
     }
 }

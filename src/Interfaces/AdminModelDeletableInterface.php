@@ -8,7 +8,7 @@ use VitesseCms\Database\AbstractCollection;
 
 interface AdminModelDeletableInterface
 {
-    public function deleteAction(string $modelId): void;
+    public function deleteAction(string $modelItemId): void;
 
     public function getModel(string $modelId): ?AbstractCollection;
 }

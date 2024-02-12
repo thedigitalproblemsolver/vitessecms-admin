@@ -8,7 +8,7 @@ use VitesseCms\Database\AbstractCollection;
 
 interface AdminModelPublishableInterface
 {
-    public function togglePublishAction(string $modelId): void;
+    public function togglePublishAction(string $modelItemId): void;
 
     public function getModel(string $modelId): ?AbstractCollection;
 }
