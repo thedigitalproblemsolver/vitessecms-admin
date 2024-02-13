@@ -8,6 +8,7 @@ use stdClass;
 use VitesseCms\Admin\Forms\AdminlistForm;
 use VitesseCms\Admin\Helpers\PaginationHelper;
 use VitesseCms\Admin\Models\AdminListButtonIterator;
+use VitesseCms\Database\Enums\FindValueTypeEnum;
 use VitesseCms\Database\Models\FindValue;
 use VitesseCms\Database\Models\FindValueIterator;
 use VitesseCms\Mustache\DTO\RenderTemplateDTO;
@@ -20,8 +21,8 @@ trait TraitAdminModelList
     {
         $aclService = $this->eventsManager->fire(AclEnum::ATTACH_SERVICE_LISTENER->value, new stdClass());
         $adminlistForm = new AdminlistForm();
-        $controllerUri = $this->urlService->getBaseUri() . 'admin/' . $this->router->getModuleName(
-            ) . '/' . $this->router->getControllerName();
+        $controllerUri = $this->urlService->getBaseUri().'admin/'.$this->router->getModuleName(
+            ).'/'.$this->router->getControllerName();
 
         $paginationHelper = new PaginationHelper(
             $this->getModelList($this->getFilterValues()),
@@ -29,10 +30,10 @@ trait TraitAdminModelList
             $this->request->get('offset', 'int', 0)
         );
 
-        $this->eventsManager->fire(get_class($this) . ':adminListFilter', $this, $adminlistForm);
+        $this->eventsManager->fire(get_class($this).':adminListFilter', $this, $adminlistForm);
 
         $buttons = new AdminListButtonIterator([]);
-        $this->eventsManager->fire(get_class($this) . ':adminListButtons', $buttons);
+        $this->eventsManager->fire(get_class($this).':adminListButtons', $buttons);
 
         $renderedModelList = $this->eventsManager->fire(
             ViewEnum::RENDER_TEMPLATE_EVENT,
@@ -64,8 +65,8 @@ trait TraitAdminModelList
                         'actionBaseUri' => $controllerUri,
                         'canAdd' => $aclService->hasAccess('add') && ($this->isAddable ?? false),
                         'buttons' => $buttons,
-                        'filterForm' => $adminlistForm->renderForm($controllerUri . '/adminlist', 'adminFilter'),
-                        'list' => $renderedModelList
+                        'filterForm' => $adminlistForm->renderForm($controllerUri.'/adminlist', 'adminFilter'),
+                        'list' => $renderedModelList,
                     ]
                 )
             )
@@ -75,15 +76,16 @@ trait TraitAdminModelList
     protected function getFilterValues(): ?FindValueIterator
     {
         $filter = $this->getFilter();
+
         if ($filter === null) {
             return null;
         }
 
         $filterValues = [];
         foreach ($filter as $key => $filterInput) {
-            if (is_string($filterInput)) :
+            if (is_string($filterInput)) {
                 $value = trim($filterInput);
-            endif;
+            }
 
             if (!empty($filterInput)) {
                 switch ($key) {
@@ -93,8 +95,25 @@ trait TraitAdminModelList
                             'false' => new FindValue($key, false)
                         };
                         break;
+                    case 'date':
+                        $fieldName = array_key_first($filterInput);
+                        if (!empty($filterInput[$fieldName]['from'])) {
+                            $filterValues[] = new FindValue(
+                                $fieldName,
+                                $filterInput[$fieldName]['from'],
+                                FindValueTypeEnum::GREATER_THAN->value
+                            );
+                        }
+                        if (!empty($filterInput[$fieldName]['till'])) {
+                            $filterValues[] = new FindValue(
+                                $fieldName,
+                                $filterInput[$fieldName]['till'],
+                                FindValueTypeEnum::SMALLER_THAN->value
+                            );
+                        }
+                        break;
                     default:
-                        $filterValues[] = new FindValue($key, $value, 'like');
+                        $filterValues[] = new FindValue($key, $value, FindValueTypeEnum::LIKE->value);
                         break;
                 }
             }
@@ -105,14 +124,16 @@ trait TraitAdminModelList
 
     private function getFilter(): ?array
     {
-        $sessionKey = 'filter_' . md5($this::class);
+        $sessionKey = 'filter_'.md5($this::class);
 
         if (!$this->request->hasPost('filter') && !$this->session->has($sessionKey)) {
             return null;
         }
 
         if (!$this->request->hasPost('filter') && $this->session->has($sessionKey)) {
-            return $_REQUEST['filter'] = $this->session->get($sessionKey);
+            $_REQUEST['filter'] = $this->session->get($sessionKey);
+
+            return $_REQUEST['filter'];
         }
 
         $this->session->set($sessionKey, $this->request->getPost('filter'));
