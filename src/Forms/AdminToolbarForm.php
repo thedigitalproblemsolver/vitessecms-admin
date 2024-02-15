@@ -36,10 +36,11 @@ final class AdminToolbarForm extends AbstractForm
         );
 
         if (null !== $this->view->getCurrentId()) {
-            $this->addHtml(
-                '<a class="btn btn-primary fa fa-edit" target="_blank" href="'.$this->configuration->getBaseUri(
-                ).'admin/content/adminitem/edit/'.$this->view->getCurrentId().'"></a>'
-            );
+            $javascript = file_get_contents(__DIR__.'/../Resources/react/editButton.jsx');
+            if (is_string($javascript)) {
+                $this->assets->addInlineBabel($javascript);
+                $this->addHtml('<div id="react-edit-button" data-itemid="'.$this->view->getCurrentId().'" ></div>');
+            }
         }
     }
 }
